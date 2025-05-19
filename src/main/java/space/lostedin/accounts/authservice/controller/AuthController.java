@@ -66,12 +66,8 @@ public class AuthController {
         return ResponseEntity.ok(rsaKeyProvider.getPublicKey());
     }
 
-    //TODO: написать UserService иммитатор +++
-
-    //TODO: подключить к БД   +++
-
     //TODO: дописать этот контроллер
 
     //TODO: вывести токены на отдельный контроллер TokenController (надо подумать правильно ли это)
-    //PS: думаю это тупо, потому что токены это часть аутентификации
+    // PS: думаю это тупо, потому что токены это часть аутентификации
 }

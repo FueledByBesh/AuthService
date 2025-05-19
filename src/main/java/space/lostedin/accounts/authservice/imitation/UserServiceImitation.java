@@ -18,7 +18,7 @@ public class UserServiceImitation {
     Map<UUID, UserImitation> userDB = new HashMap<>();
 
     public UserDTO createUser(UserDTO userDTO) {
-        //TODO: Implement the logic to create a userImitation
+
         UserImitation userImitation = UserImitation.builder()
                 .username(userDTO.getUsername())
                 .email(userDTO.getEmail())
@@ -54,10 +54,14 @@ public class UserServiceImitation {
     }
 
     public Optional<UserDTO> getUserByUsername(String username) {
-        //TODO: Implement the logic to get user by username
 
+        //TODO: неправильная логика, userImitation.getUsername() might be null
+        // либо нужно изменить логику тут, либо при создании пользователя ставить дефолтный username
+        // или вообще отказать созданию пользователя без username или же email
+        // PS: пока логика исправлена, но нужно писать другую логику. Хотя зачем? Все равно же создам
+        // отдельный микросервис
         for (UserImitation userImitation : userDB.values()) {
-            if (userImitation.getUsername().equals(username)) {
+            if (userImitation.getUsername()!=null && userImitation.getUsername().equals(username)) {
                 return Optional.of(UserDTO.builder()
                         .id(userImitation.getId())
                         .username(userImitation.getUsername())
@@ -71,8 +75,8 @@ public class UserServiceImitation {
     }
 
     public Optional<UserDTO> getUserByEmail(String email) {
-        //TODO: Implement the logic to get user by email
 
+        // TODO: та же проблема как в getUserByUsername
         for (UserImitation userImitation : userDB.values()) {
             if (userImitation.getEmail()!=null && userImitation.getEmail().equals(email)) {
                 return Optional.of(UserDTO.builder()

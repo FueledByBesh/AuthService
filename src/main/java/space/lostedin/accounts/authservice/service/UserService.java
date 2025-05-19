@@ -1,5 +1,6 @@
 package space.lostedin.accounts.authservice.service;
 
+import org.springframework.http.MediaType;
 import space.lostedin.accounts.authservice.dto.ApiMessageDTO;
 import space.lostedin.accounts.authservice.dto.UserDTO;
 import space.lostedin.accounts.authservice.exception.Message;
@@ -29,8 +30,10 @@ public class UserService {
 
     public UserDTO createUser(UserDTO userDTO) {
 
-        return userServiceWebClient.get()
+        return userServiceWebClient.post()
                 .uri("/api/v1/user/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(userDTO)
                 .retrieve()
                 .onStatus(
                         HttpStatusCode::isError,
@@ -56,6 +59,7 @@ public class UserService {
                 .onStatus(
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
+                                .switchIfEmpty(Mono.just(ApiMessageDTO.builder().message("Smth get wrong, Status unknown").status(500).build()))
                                 .flatMap(errorBody ->
                                         Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
                                 )
@@ -90,20 +94,26 @@ public class UserService {
     }
 
     public Optional<UserDTO> getUserByEmail(String email) {
-        //TODO: Implement the logic to get user by email
 
-//        for (UserImitation userImitation : userDB.values()) {
-//            if (userImitation.getEmail() != null && userImitation.getEmail().equals(email)) {
-//                return Optional.of(UserDTO.builder()
-//                        .id(userImitation.getId())
-//                        .username(userImitation.getUsername())
-//                        .email(userImitation.getEmail())
-//                        .password(userImitation.getPassword())
-//                        .build());
-//            }
-//        }
+        return userServiceWebClient.get()
+                .uri("/api/v1/user/email:{email}",email)
+                .retrieve()
+                .onStatus(
+                        status -> status==HttpStatus.NOT_FOUND,
+                        clientResponse -> Mono.error(new NotFoundException("User not found"))
+                )
+                .onStatus(
+                        HttpStatusCode::isError,
+                        response -> response.bodyToMono(ApiMessageDTO.class)
+                                .switchIfEmpty(Mono.just(ApiMessageDTO.builder().message("Smth get wrong, Status unknown").status(500).build()))
+                                .flatMap(errorBody ->
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                )
+                )
+                .bodyToMono(UserDTO.class)
+                .onErrorResume(NotFoundException.class, ex -> Mono.empty())
+                .blockOptional();
 
-        return Optional.empty();
     }
 
     public List<String> getAllUsers() {

@@ -53,6 +53,9 @@ public class AuthService {
 
         // Проверяем пароль
 
+        //TODO: Password validation должен быть в UserService (микросервис), а не тут.
+        // Этот AuthService не должен иметь доступ к паролям
+
         if (!passwordEncoder.matches(userDTO.getPassword(), existingUser.getPassword())) {
             throw new ServiceException(401, "Invalid password");
         }
@@ -63,8 +66,8 @@ public class AuthService {
 
 
     //TODO: Логику logout нужно обновить в будущем!!!
-    //Потому что любой пользователь имеющий non-expired токен может выйти из системы другого пользователя зная его id, username или email.
-    //Лучше написать с нуля оптимизируя или создать новый метод который будет удалять токены вытаскивая userId из токена
+    // Потому что любой пользователь имеющий non-expired токен может выйти из системы другого пользователя зная его id, username или email.
+    // Лучше написать с нуля оптимизируя или создать новый метод который будет удалять токены вытаскивая userId из токена
     public void logout(UserDTO userDTO) {
 
         if(userDTO.getId() == null && userDTO.getUsername() == null && userDTO.getEmail() == null) {

@@ -22,6 +22,8 @@ public class UserControllerImitation {
         return ResponseEntity.ok(user);
     }
 
+
+    //TODO: Наверное лучше использовать @RequestParam вместо @PathVariable
     @GetMapping("/id:{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
 
@@ -34,6 +36,14 @@ public class UserControllerImitation {
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
 
         return userService.getUserByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/email:{email}")
+    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
+
+        return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
