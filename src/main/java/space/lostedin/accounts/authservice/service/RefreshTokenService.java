@@ -17,7 +17,7 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public RefreshToken createRefreshToken(UUID userId, String token, long expirationMillis) {
+    public void createRefreshToken(UUID userId, String token, long expirationMillis) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUserId(userId);
         refreshToken.setToken(token);
@@ -27,7 +27,6 @@ public class RefreshTokenService {
         }catch (Exception e){
             throw new ServiceException(500, "Error saving refresh token");
         }
-        return refreshTokenRepository.save(refreshToken);
     }
 
     public Optional<RefreshToken> findByToken(String token) {

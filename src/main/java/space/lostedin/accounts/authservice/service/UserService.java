@@ -3,11 +3,8 @@ package space.lostedin.accounts.authservice.service;
 import org.springframework.http.MediaType;
 import space.lostedin.accounts.authservice.dto.ApiMessageDTO;
 import space.lostedin.accounts.authservice.dto.UserDTO;
-import space.lostedin.accounts.authservice.exception.Message;
 import space.lostedin.accounts.authservice.exception.NotFoundException;
 import space.lostedin.accounts.authservice.exception.WebClientExeption;
-import space.lostedin.accounts.authservice.imitation.UserImitation;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -18,15 +15,14 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 
-//This class will imitate the UserService till it is implemented
-
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
-    @Qualifier("userServiceWebClient")
     private final WebClient userServiceWebClient;
-//    Map<UUID, UserImitation> userDB = new HashMap<>();
+
+    public UserService(@Qualifier("userServiceWebClient") WebClient webClient){
+        this.userServiceWebClient = webClient;
+    }
 
     public UserDTO createUser(UserDTO userDTO) {
 
@@ -117,15 +113,8 @@ public class UserService {
     }
 
     public List<String> getAllUsers() {
-//        List<String> users = new ArrayList<>();
-//        for (UserImitation userImitation : userDB.values()) {
-//            users.add(userImitation.getUsername() + " " + userImitation.getEmail());
-//        }
-//
-//        if (users.isEmpty()) {
-//            System.out.println("No users found");
-//            throw new Message("No Users found");
-//        }
+
+        //TODO: Not Implemented
         return new ArrayList<>();
     }
 }

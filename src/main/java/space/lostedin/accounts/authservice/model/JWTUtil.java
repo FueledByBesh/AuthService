@@ -57,8 +57,7 @@ public class JWTUtil {
 
     private DecodedJWT getJwt(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null)).build();
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt;
+        return verifier.verify(token);
     }
 
     public Map<String, String> getSubAndClaims(String token) {

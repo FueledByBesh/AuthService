@@ -128,7 +128,7 @@ public class AuthService {
 
 
         // Проверяем, существует ли refresh token
-        if (!refreshTokenOptional.isPresent()) {
+        if (refreshTokenOptional.isEmpty()) {
             throw new ServiceException(401, "Invalid refresh token or has been expired");
         }
 
