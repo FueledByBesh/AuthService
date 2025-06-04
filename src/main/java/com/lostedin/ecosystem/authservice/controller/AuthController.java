@@ -10,6 +10,7 @@ import com.lostedin.ecosystem.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.FilterChainProxy;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
