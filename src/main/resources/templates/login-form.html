@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LostedIn</title>
+<!--    <link href="../static/login.css" rel="stylesheet">-->
+<!--    <link rel="stylesheet" th:href="'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'">-->
+    <link rel="stylesheet" th:href="@{/login.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+</head>
+
+<body>
+<div class="Login">
+    <h2 class="Login-h2" th:text="'Login to '+${service}"></h2>
+    <div class="Login-container">
+        <form action="">
+            <div class="form-step">
+                <div class="input-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="login-password" placeholder="Enter your password">
+                        <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePassword('login-password')"></i>
+                    </div>
+                </div>
+                <button type="submit" class="Login-button">Sign In</button>
+                <p class="Login-p">Don't have an account? <a href="register-form.html">Register</a></p>
+            </div>
+        </form>
+    </div>
+    <div class="error-message" th:if="${wrongCredentials}">Wrong Credential! Try Again</div>
+</div>
+
+<script>
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = input.nextElementSibling;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+</script>
+</body>
+</html>

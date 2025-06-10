@@ -1,24 +1,24 @@
 package com.lostedin.ecosystem.authservice.controller;
 
 
-import com.lostedin.ecosystem.authservice.dto.ApiMessageDTO;
-import com.lostedin.ecosystem.authservice.dto.TokenDTO;
-import com.lostedin.ecosystem.authservice.dto.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.server.ApiMessageDTO;
+import com.lostedin.ecosystem.authservice.dto.session.TokenDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.model.RSAKeyProvider;
 import com.lostedin.ecosystem.authservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
 //TODO: контроллер должен быть @Controller что бы выдавать html страницы
 @RestController
+@Deprecated
 @RequiredArgsConstructor
 @RequestMapping("/auth/v1")
-public class AuthController {
+public class BasicAuthController {
 
     private final AuthService authService;
     private final FilterChainProxy filterChainProxy;

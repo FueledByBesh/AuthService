@@ -1,7 +1,7 @@
 package com.lostedin.ecosystem.authservice.imitation;
 
 
-import com.lostedin.ecosystem.authservice.dto.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

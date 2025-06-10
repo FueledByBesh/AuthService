@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+
+  <h1 th:text="'Will you give to service'+${service}+' access to your account?'"></h1>
+
+  <div th:object="${user}">
+    <img th:src="*{avatarUrl}" alt="avatar">
+    <p th:text="*{username}"></p>
+    <p th:text="*{email}"></p>
+  </div>
+
+  <button>Сancel</button>
+  <button>Give Access</button>
+
+
+
+</body>
+</html>

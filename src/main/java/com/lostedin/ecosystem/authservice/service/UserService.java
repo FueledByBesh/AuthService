@@ -1,8 +1,10 @@
 package com.lostedin.ecosystem.authservice.service;
 
+import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserRegisterDTO;
 import org.springframework.http.MediaType;
-import com.lostedin.ecosystem.authservice.dto.ApiMessageDTO;
-import com.lostedin.ecosystem.authservice.dto.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.server.ApiMessageDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
 import com.lostedin.ecosystem.authservice.exception.NotFoundException;
 import com.lostedin.ecosystem.authservice.exception.WebClientExeption;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +26,38 @@ public class UserService {
         this.userServiceWebClient = webClient;
     }
 
+    public List<UserMinDataDTO> getUsersMinDataByUserId(List<UUID> userIds){
+        //TODO: Not Implemented
+        return null;
+    }
+
+    public Optional<UUID> validateUser(String email, String password){
+        //TODO: Not Implemented
+        // (Should return user id in UUID format wrapped into Optional)
+        return Optional.empty();
+    }
+
+    public UUID createUser(UserRegisterDTO user){
+
+        return userServiceWebClient.post()
+                .uri("/api/v1/users/create-user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(user)
+                .retrieve()
+                .onStatus(
+                        HttpStatusCode::isError,
+                        response -> response.bodyToMono(ApiMessageDTO.class)
+                                .flatMap(errorBody ->
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                )
+                )
+                .bodyToMono(UUID.class)
+                .block();
+    }
+
+
+
+    @Deprecated
     public UserDTO createUser(UserDTO userDTO) {
 
         return userServiceWebClient.post()
@@ -43,6 +77,7 @@ public class UserService {
 
     }
 
+    @Deprecated
     public Optional<UserDTO> getUserById(UUID id) {
 
         return userServiceWebClient.get()
@@ -66,6 +101,7 @@ public class UserService {
 
     }
 
+    @Deprecated
     public Optional<UserDTO> getUserByUsername(String username) {
 
         return userServiceWebClient.get()
@@ -89,6 +125,7 @@ public class UserService {
 
     }
 
+    @Deprecated
     public Optional<UserDTO> getUserByEmail(String email) {
 
         return userServiceWebClient.get()

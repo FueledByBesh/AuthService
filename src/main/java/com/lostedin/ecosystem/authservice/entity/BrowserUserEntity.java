@@ -10,14 +10,15 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "browser_sessions")
-public class BrowserSessionsEntity {
+@Table(name = "browser_user")
+public class BrowserUserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private UUID client_id;
+    private UUID browser_id;
     private UUID user_id;
     private Instant first_logged_at;
     private Instant last_logged_at;
+
 }

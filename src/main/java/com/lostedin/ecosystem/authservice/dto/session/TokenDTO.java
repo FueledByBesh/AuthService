@@ -1,4 +1,4 @@
-package com.lostedin.ecosystem.authservice.dto;
+package com.lostedin.ecosystem.authservice.dto.session;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

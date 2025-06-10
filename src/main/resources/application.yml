@@ -13,8 +13,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
   thymeleaf:
     cache: false
     suffix: .html
     prefix: classpath:/templates/
+
+server:
+  address: accounts.lostedin.com
+  port: 8080

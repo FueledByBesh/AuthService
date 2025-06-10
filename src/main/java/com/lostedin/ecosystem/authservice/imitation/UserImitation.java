@@ -1,6 +1,6 @@
 package com.lostedin.ecosystem.authservice.imitation;
 
-import com.lostedin.ecosystem.authservice.dto.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
 import lombok.Builder;
 import lombok.Data;
 

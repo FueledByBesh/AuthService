@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Logged Users</title>
+</head>
+<body>
+
+    <h1>This is Logged Users List</h1>
+
+    <div th:if="isLoggedIn" th:each="user : ${users}">
+        <p th:text="'Username: '+${user.username}"></p>
+        <p th:text="'Email: '+${user.email}"></p>
+        <img th:src="${user.avatarUrl}" alt="avatar">
+    </div>
+
+    <div th:if="${!isLoggedIn}" th:text="${message}"></div>
+
+    <button>Login</button>
+
+</body>
+</html>

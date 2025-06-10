@@ -1,4 +1,4 @@
-package com.lostedin.ecosystem.authservice.config;
+package com.lostedin.ecosystem.authservice.restapi;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,7 @@ public class WebClientConfig {
     @Bean
     public WebClient userServiceWebClient(WebClient.Builder builder){
         return builder
-                .baseUrl("http://localhost:8080")
+                .baseUrl("http://internal.lostedin.com:8081")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

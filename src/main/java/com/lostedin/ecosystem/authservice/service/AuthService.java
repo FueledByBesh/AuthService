@@ -1,8 +1,8 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.dto.TokenDTO;
-import com.lostedin.ecosystem.authservice.dto.UserDTO;
-import com.lostedin.ecosystem.authservice.entity.RefreshToken;
+import com.lostedin.ecosystem.authservice.dto.session.TokenDTO;
+import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
+import com.lostedin.ecosystem.authservice.entity.RefreshTokenEntity;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.model.JWTUtil;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -25,12 +26,14 @@ public class AuthService {
     private final Long USER_REFRESH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 4L; // 4 дня
 
 
+    @Deprecated
     public TokenDTO register(UserDTO userDTO) {
         isCorrectDTO(userDTO);
         UserDTO createdUser = userService.createUser(userDTO);
         return generateUserToken(createdUser);
     }
 
+    @Deprecated
     public TokenDTO login(UserDTO userDTO) {
 
         isCorrectDTO(userDTO);
@@ -68,6 +71,7 @@ public class AuthService {
     //TODO: Логику logout нужно обновить в будущем!!!
     // Потому что любой пользователь имеющий non-expired токен может выйти из системы другого пользователя зная его id, username или email.
     // Лучше написать с нуля оптимизируя или создать новый метод который будет удалять токены вытаскивая userId из токена
+    @Deprecated
     public void logout(UserDTO userDTO) {
 
         if(userDTO.getId() == null && userDTO.getUsername() == null && userDTO.getEmail() == null) {
@@ -95,6 +99,7 @@ public class AuthService {
 
         refreshTokenService.deleteRefreshTokenByUserId(userId);
     }
+
 
     private TokenDTO generateUserToken(UserDTO userDTO) {
 
@@ -124,7 +129,7 @@ public class AuthService {
         }
 
         // Вытаскиваем refresh token из базы данных
-        Optional<RefreshToken> refreshTokenOptional = refreshTokenService.findByToken(refreshToken);
+        Optional<RefreshTokenEntity> refreshTokenOptional = refreshTokenService.findByToken(refreshToken);
 
 
         // Проверяем, существует ли refresh token

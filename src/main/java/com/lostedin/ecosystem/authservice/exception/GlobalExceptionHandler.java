@@ -1,6 +1,6 @@
 package com.lostedin.ecosystem.authservice.exception;
 
-import com.lostedin.ecosystem.authservice.dto.ApiMessageDTO;
+import com.lostedin.ecosystem.authservice.dto.server.ApiMessageDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

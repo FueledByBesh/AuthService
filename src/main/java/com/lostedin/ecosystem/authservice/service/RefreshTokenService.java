@@ -1,6 +1,6 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.entity.RefreshToken;
+import com.lostedin.ecosystem.authservice.entity.RefreshTokenEntity;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,22 +18,22 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void createRefreshToken(UUID userId, String token, long expirationMillis) {
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUserId(userId);
-        refreshToken.setToken(token);
-        refreshToken.setExpiresAt(Instant.now().plus(expirationMillis, ChronoUnit.MILLIS));
+        RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
+        refreshTokenEntity.setUserId(userId);
+        refreshTokenEntity.setToken(token);
+        refreshTokenEntity.setExpiresAt(Instant.now().plus(expirationMillis, ChronoUnit.MILLIS));
         try{
-            refreshTokenRepository.save(refreshToken);
+            refreshTokenRepository.save(refreshTokenEntity);
         }catch (Exception e){
             throw new ServiceException(500, "Error saving refresh token");
         }
     }
 
-    public Optional<RefreshToken> findByToken(String token) {
+    public Optional<RefreshTokenEntity> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public Optional<RefreshToken> findById(UUID id) {
+    public Optional<RefreshTokenEntity> findById(UUID id) {
         return refreshTokenRepository.findById(id);
     }
 
@@ -49,8 +49,8 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteByUserId(userId);
     }
 
-    public boolean isTokenExpired(RefreshToken refreshToken) {
-        return refreshToken.getExpiresAt().isBefore(Instant.now());
+    public boolean isTokenExpired(RefreshTokenEntity refreshTokenEntity) {
+        return refreshTokenEntity.getExpiresAt().isBefore(Instant.now());
     }
 
     public void deleteExpiredTokens() {
