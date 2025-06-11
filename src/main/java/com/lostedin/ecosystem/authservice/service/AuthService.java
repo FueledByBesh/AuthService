@@ -4,7 +4,7 @@ import com.lostedin.ecosystem.authservice.dto.session.TokenDTO;
 import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
 import com.lostedin.ecosystem.authservice.entity.RefreshTokenEntity;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
-import com.lostedin.ecosystem.authservice.model.JWTUtil;
+import com.lostedin.ecosystem.authservice.model.JwtShit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final JWTUtil jwtUtil;
+    private final JwtShit jwtShit;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
@@ -103,8 +103,8 @@ public class AuthService {
 
     private TokenDTO generateUserToken(UserDTO userDTO) {
 
-        String accessToken = jwtUtil.generateUserToken(userDTO.getId().toString(),userDTO.getUsername(), USER_ACCESS_TOKEN_EXPIRATION_TIME);
-        String refreshToken = jwtUtil.generateUserToken(userDTO.getId().toString(),userDTO.getUsername(), USER_REFRESH_TOKEN_EXPIRATION_TIME);
+        String accessToken = jwtShit.generateUserToken(userDTO.getId().toString(),userDTO.getUsername(), USER_ACCESS_TOKEN_EXPIRATION_TIME);
+        String refreshToken = jwtShit.generateUserToken(userDTO.getId().toString(),userDTO.getUsername(), USER_REFRESH_TOKEN_EXPIRATION_TIME);
 
         refreshTokenService.createRefreshToken(userDTO.getId(), refreshToken ,USER_REFRESH_TOKEN_EXPIRATION_TIME);
 
@@ -144,11 +144,11 @@ public class AuthService {
 
         // Генерируем новый access token
 
-        Map<String, String> subAndClaims = jwtUtil.getSubAndClaims(refreshToken);
+        Map<String, String> subAndClaims = jwtShit.getSubAndClaims(refreshToken);
 
         String sub = subAndClaims.get("sub");
         String username = subAndClaims.get("username");
-        String accessToken = jwtUtil.generateUserToken(sub,username, USER_ACCESS_TOKEN_EXPIRATION_TIME);
+        String accessToken = jwtShit.generateUserToken(sub,username, USER_ACCESS_TOKEN_EXPIRATION_TIME);
 
         return TokenDTO.builder()
                 .accessToken(accessToken)

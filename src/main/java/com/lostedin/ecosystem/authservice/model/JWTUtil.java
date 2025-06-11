@@ -1,75 +1,68 @@
 package com.lostedin.ecosystem.authservice.model;
 
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import com.lostedin.ecosystem.authservice.exception.ServiceException;
+import com.lostedin.ecosystem.authservice.exception.InvalidTokenException;
+import com.lostedin.ecosystem.authservice.exception.TokenEncryptionException;
+import com.lostedin.ecosystem.authservice.exception.TokenExpiredException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class JWTUtil {
 
-    private final RSAKeyProvider rsaKeyProvider;
+    private final AbstractNimbus nimbus;
 
-    private final RSAPrivateKey privateKey;
-    private final RSAPublicKey publicKey;
-
-    public JWTUtil(RSAKeyProvider rsaKeyProvider) {
-        this.rsaKeyProvider = rsaKeyProvider;
-        this.privateKey = RSAKeyConverter.convertPrivateKey(rsaKeyProvider.getPrivateKey());
-        this.publicKey = RSAKeyConverter.convertPublicKey(rsaKeyProvider.getPublicKey());
+    public JWTUtil(){
+        nimbus = new AbstractNimbus(getKey());
     }
 
-    public String generateUserToken(String idAsSub, String username, long expirationMillis) {
-        return JWT.create()
-                .withSubject(idAsSub)
-                .withClaim("username", username)
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + expirationMillis))
-                .sign(Algorithm.RSA256(null, privateKey));
+    public String generateToken(String subject, long expirationMillis) throws TokenEncryptionException{
+        return nimbus.generateJweWithSub(subject,expirationMillis);
     }
 
-    public String generateServiceToken(String serviceName, long expirationMillis) {
-        return JWT.create()
-                .withSubject(serviceName)
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + expirationMillis))
-                .sign(Algorithm.RSA256(null, privateKey));
+    public String generateTokenWithClaims(String subject, Map<String,Object> claims, long expirationMillis) throws TokenEncryptionException {
+        return nimbus.generateJweWithSubAndClaims(subject, claims, expirationMillis);
     }
 
-    public boolean validateToken(String token) {
-        try {
-            DecodedJWT jwt = this.getJwt(token);
-            return jwt.getExpiresAt().after(new Date());
-        } catch (JWTVerificationException e) {
-            return false;
+    public void validateToken(String token) throws TokenExpiredException, InvalidTokenException {
+        nimbus.validateJwe(token);
+    }
+
+    public JWTPayload validateTokenAndGetPayload(String token) throws TokenExpiredException, InvalidTokenException {
+        Map<String, Object> claims = nimbus.validateJwe(token);
+        return getDecodedJwtFromNimbusClaims(claims);
+    }
+
+    private JWTPayload getDecodedJwtFromNimbusClaims(Map<String,Object> claims){
+
+        JWTPayload.JWTPayloadBuilder builder = JWTPayload.builder();
+        Map<String, Object> payloadClaims = new HashMap<>();
+
+        claims.forEach((k,v)->{
+            switch (k) {
+                case "sub" -> builder.subject((String) v);
+                case "exp" -> builder.expirationDate((Date) v);
+                case "iat" -> builder.issuedAtDate((Date) v);
+                default -> payloadClaims.put(k, v);
+            }
+        });
+        if(!payloadClaims.isEmpty()){
+            builder.claims(payloadClaims);
         }
 
+        return builder.build();
     }
 
-    private DecodedJWT getJwt(String token) throws JWTVerificationException {
-        JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null)).build();
-        return verifier.verify(token);
-    }
+    private byte[] getKey(){
 
-    public Map<String, String> getSubAndClaims(String token) {
-        try {
-            DecodedJWT jwt = this.getJwt(token);
-            return Map.of(
-                    "sub", jwt.getSubject(),
-                    "username", jwt.getClaim("username").asString()
-            );
-        } catch (JWTVerificationException e) {
-            throw new ServiceException(401, "Invalid token");
-        }
+        //TODO: Not Implemented
+        String key = System.getenv("JWE_SHARED_KEY");
+        return Base64.getDecoder().decode(key);
     }
 
 }
