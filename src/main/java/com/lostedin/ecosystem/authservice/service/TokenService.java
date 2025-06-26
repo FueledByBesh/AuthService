@@ -1,13 +1,12 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
 import com.lostedin.ecosystem.authservice.exception.InvalidTokenException;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.exception.TokenEncryptionException;
 import com.lostedin.ecosystem.authservice.exception.TokenExpiredException;
 import com.lostedin.ecosystem.authservice.model.JWTPayload;
 import com.lostedin.ecosystem.authservice.model.JWTUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

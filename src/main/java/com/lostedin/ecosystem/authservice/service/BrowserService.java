@@ -1,6 +1,6 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.repository.BrowserUserRepository;
 import jakarta.servlet.http.Cookie;

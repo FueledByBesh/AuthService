@@ -1,6 +1,7 @@
 package com.lostedin.ecosystem.authservice.entity;
 
 import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.enums.StatusType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,12 +19,20 @@ public class SessionEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID session_id;
     private UUID client_id;
+    private UUID user_id;
     private String redirect_uri;
     private String scopes;
-    private String response_code;
-    private OAuthResponseType response_type;
-    private String session_status;
+    private StatusType session_status;
     private Instant created_at;
+
+    private int times_token_refreshed;
+
+    @PrePersist
+    private void prePersist(){
+        this.created_at = Instant.now();
+        this.session_status = StatusType.ACTIVE;
+    }
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", insertable = false, updatable = false)

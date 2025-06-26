@@ -1,10 +1,10 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
-import com.lostedin.ecosystem.authservice.dto.User.UserRegisterDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserRegisterDTO;
 import org.springframework.http.MediaType;
 import com.lostedin.ecosystem.authservice.dto.server.ApiMessageDTO;
-import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserDTO;
 import com.lostedin.ecosystem.authservice.exception.NotFoundException;
 import com.lostedin.ecosystem.authservice.exception.WebClientExeption;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,6 +37,12 @@ public class UserService {
         return Optional.empty();
     }
 
+    /* TODO: изменить логику
+        1) Надо вернуть DTO (пока сомнительно, надо подумать зачем)
+        2) Вывести ошибку если null (тоже сомнительно, но лучше сделать это тут чем в контроллере)
+        3) Описать что вернет в каких случаях как документация
+        Status: Not Implemented (0:3)
+     */
     public UUID createUser(UserRegisterDTO user){
 
         return userServiceWebClient.post()
@@ -48,13 +54,12 @@ public class UserService {
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
                                 .flatMap(errorBody ->
-                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "user Service error: " + errorBody.getMessage()))
                                 )
                 )
                 .bodyToMono(UUID.class)
                 .block();
     }
-
 
 
     @Deprecated
@@ -69,7 +74,7 @@ public class UserService {
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
                                 .flatMap(errorBody ->
-                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "user Service error: " + errorBody.getMessage()))
                                 )
                 )
                 .bodyToMono(UserDTO.class)
@@ -85,14 +90,14 @@ public class UserService {
                 .retrieve()
                 .onStatus(
                         status -> status == HttpStatus.NOT_FOUND,
-                        response -> Mono.error(new NotFoundException("User not found"))
+                        response -> Mono.error(new NotFoundException("user not found"))
                 )
                 .onStatus(
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
                                 .switchIfEmpty(Mono.just(ApiMessageDTO.builder().message("Smth get wrong, Status unknown").status(500).build()))
                                 .flatMap(errorBody ->
-                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "user Service error: " + errorBody.getMessage()))
                                 )
                 )
                 .bodyToMono(UserDTO.class)
@@ -109,14 +114,14 @@ public class UserService {
                 .retrieve()
                 .onStatus(
                         status -> status==HttpStatus.NOT_FOUND,
-                        clientResponse -> Mono.error(new NotFoundException("User not found"))
+                        clientResponse -> Mono.error(new NotFoundException("user not found"))
                 )
                 .onStatus(
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
                                 .switchIfEmpty(Mono.just(ApiMessageDTO.builder().message("Smth get wrong, Status unknown").status(500).build()))
                                 .flatMap(errorBody ->
-                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "user Service error: " + errorBody.getMessage()))
                                 )
                 )
                 .bodyToMono(UserDTO.class)
@@ -133,14 +138,14 @@ public class UserService {
                 .retrieve()
                 .onStatus(
                         status -> status==HttpStatus.NOT_FOUND,
-                        clientResponse -> Mono.error(new NotFoundException("User not found"))
+                        clientResponse -> Mono.error(new NotFoundException("user not found"))
                 )
                 .onStatus(
                         HttpStatusCode::isError,
                         response -> response.bodyToMono(ApiMessageDTO.class)
                                 .switchIfEmpty(Mono.just(ApiMessageDTO.builder().message("Smth get wrong, Status unknown").status(500).build()))
                                 .flatMap(errorBody ->
-                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "User Service error: " + errorBody.getMessage()))
+                                        Mono.error(new WebClientExeption(errorBody.getStatus(), "user Service error: " + errorBody.getMessage()))
                                 )
                 )
                 .bodyToMono(UserDTO.class)

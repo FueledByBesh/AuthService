@@ -1,12 +1,10 @@
 package com.lostedin.ecosystem.authservice.controller;
 
-import com.lostedin.ecosystem.authservice.dto.User.UserLoginDTO;
-import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
-import com.lostedin.ecosystem.authservice.dto.User.UserRegisterDTO;
-import com.lostedin.ecosystem.authservice.dto.session.PreSessionDTO;
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.dto.user.UserLoginDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserRegisterDTO;
+import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
-import com.lostedin.ecosystem.authservice.service.AuthService;
 import com.lostedin.ecosystem.authservice.service.BrowserService;
 import com.lostedin.ecosystem.authservice.service.SessionService;
 import com.lostedin.ecosystem.authservice.service.UserService;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,7 +52,7 @@ public class AuthenticationController {
                                   Model model,
                                   HttpServletRequest request) {
 
-        PreSessionDTO preSession = sessionService
+        PreSessionCreateDTO preSession = sessionService
                 .generatePreSession(clientId, redirectUri, scope, state, responseType);
 
         UUID bid = browserService.getBrowserId(request);
@@ -86,9 +83,7 @@ public class AuthenticationController {
             return "redirect:"+url+"/login?psid=" + preSessionId + "&wrong-credentials=true";
         }
 
-        if(!sessionService.setPreSessionUser(preSessionId, userId.get()))
-            throw new ServiceException(500, "Smth went wrong with saving user in presession");
-
+        sessionService.setPreSessionUser(preSessionId,userId.get());
 
         return "redirect:"+url+"/user-permission?psid=" + preSessionId;
     }
@@ -166,8 +161,7 @@ public class AuthenticationController {
         if(userId == null)
             throw new ServiceException(500, "Smth went wrong with creating user");
 
-        if(!sessionService.setPreSessionUser(preSessionId, userId))
-            throw new ServiceException(500, "Smth went wrong with saving user in presession");
+        sessionService.setPreSessionUser(preSessionId,userId);
 
         return "redirect:"+url+"/user-permission?psid=" + preSessionId;
     }

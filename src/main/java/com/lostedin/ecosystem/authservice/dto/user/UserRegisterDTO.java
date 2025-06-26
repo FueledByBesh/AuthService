@@ -1,4 +1,4 @@
-package com.lostedin.ecosystem.authservice.dto.User;
+package com.lostedin.ecosystem.authservice.dto.user;
 
 import lombok.Builder;
 import lombok.Data;

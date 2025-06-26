@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {

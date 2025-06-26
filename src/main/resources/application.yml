@@ -27,3 +27,5 @@ lostedin:
     token:
       access-token-expire-time-minutes: 30
       refresh-token-expire-time-days: 3
+    response-code:
+      code-expire-time-minutes: 5

@@ -26,6 +26,15 @@ public class PreSessionEntity {
     private String scopes;
     private OAuthResponseType response_type;
     private Instant created_at;
+
     private UUID user_id;
+    private String auth_code;
+    private Instant code_expires_at;
+
+    @PrePersist
+    private void setCreatedAtDate(){
+        this.created_at = Instant.now();
+    }
+
 
 }

@@ -19,6 +19,10 @@ public class RefreshTokenEntity {
     @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String token;
 
+
+    //TODO: Not need to save user id, better to save session id
+    // (Status: Not Implemented)
+
     @Column(nullable = false)
     private UUID userId;
 

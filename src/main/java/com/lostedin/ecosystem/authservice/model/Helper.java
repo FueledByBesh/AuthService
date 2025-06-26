@@ -9,7 +9,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Set;
 
 @Component
@@ -45,5 +47,24 @@ public class Helper {
             }
         }
         throw new IllegalArgumentException("Unknown response type: " + value);
+    }
+
+
+    // Secret length 64 symbols
+    public static String generateSecret() {
+        byte[] bytes = new byte[32]; // 256 bit
+        new SecureRandom().nextBytes(bytes);
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    public static String generateCode() {
+        SecureRandom random = new SecureRandom();
+        byte[] code = new byte[32];
+        random.nextBytes(code);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(code);
     }
 }

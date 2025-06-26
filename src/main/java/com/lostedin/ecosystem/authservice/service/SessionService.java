@@ -1,20 +1,20 @@
 package com.lostedin.ecosystem.authservice.service;
 
-import com.lostedin.ecosystem.authservice.dto.User.UserMinDataDTO;
-import com.lostedin.ecosystem.authservice.dto.session.PreSessionDTO;
-import com.lostedin.ecosystem.authservice.dto.session.SessionDTO;
+import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
+import com.lostedin.ecosystem.authservice.dto.session.SessionCreateDTO;
 import com.lostedin.ecosystem.authservice.entity.PreSessionEntity;
+import com.lostedin.ecosystem.authservice.entity.SessionEntity;
 import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
+import com.lostedin.ecosystem.authservice.mapper.SessionDtoEntityMapper;
+import com.lostedin.ecosystem.authservice.model.DtoValidator;
 import com.lostedin.ecosystem.authservice.model.Helper;
-import com.lostedin.ecosystem.authservice.repository.BrowserUserRepository;
 import com.lostedin.ecosystem.authservice.repository.PreSessionRepository;
 import com.lostedin.ecosystem.authservice.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,28 +24,31 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final PreSessionRepository preSessionRepository;
 
-//    private final BrowserService browserService;
+
     private final OAuthClientService clientService;
-//    private final UserService userService;
+    private final SessionDtoEntityMapper sessionMapper;
+    private final int AUTH_CODE_EXPIRE_TIME_MILLIS = 5 * 60 * 1000;
 
-    public boolean createSession(SessionDTO session) {
+    public boolean createSession(SessionCreateDTO session) {
 
-
-        return false;
-    }
-
-    public boolean createPreSession(PreSessionDTO session) {
-
+        DtoValidator.validateOrThrow(session);
+        SessionEntity sessionEntity = sessionMapper.sessionDtoToEntity(session);
 
 
         return false;
     }
 
-    public PreSessionDTO generatePreSession(String clientId, String redirectUri, String scopes, String state,String responseType) {
+    public boolean createPreSession(PreSessionCreateDTO session) {
+
+
+        return false;
+    }
+
+    public PreSessionCreateDTO generatePreSession(String clientId, String redirectUri, String scopes, String state, String responseType) {
 
         // generating a presession id
         UUID preSessionId = UUID.randomUUID();
-        if(preSessionRepository.findByPre_session_id(preSessionId).isPresent()) {
+        if (preSessionRepository.findByPre_session_id(preSessionId).isPresent()) {
             // TODO: вывести в log что id уже существует
             System.out.println("PreSession with id " + preSessionId + " already exists, generating new one");
             return generatePreSession(clientId, redirectUri, scopes, state, responseType);
@@ -53,53 +56,109 @@ public class SessionService {
 
         // checking whether a client exists
         UUID client_id = clientService.validateClient(clientId);
-        if(client_id == null) {
+        if (client_id == null) {
             throw new ServiceException(400, "Invalid client id");
         }
 
         OAuthResponseType oAuthResponseType;
         try {
             oAuthResponseType = Helper.getOauthResponseType(responseType);
-        }catch (IllegalArgumentException e) {
-            throw new ServiceException(400, "Error: "+e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ServiceException(400, "Error: " + e.getMessage());
         }
 
-
         // Generating a presession
-        PreSessionDTO preSession = PreSessionDTO.builder()
+        PreSessionCreateDTO preSession = PreSessionCreateDTO.builder()
                 .pre_session_id(preSessionId)
                 .client_id(client_id)
                 .redirect_uri(redirectUri)
                 .scopes(scopes)
                 .state(state)
                 .responseType(oAuthResponseType)
-                .created_at(Instant.now())
                 .build();
 
-        // TODO: get entity from DTO using Mapper (status: not implemented)
-        PreSessionEntity preSessionEntity = new PreSessionEntity();
-        preSessionRepository.save(preSessionEntity);
+        PreSessionEntity preSessionEntity = sessionMapper.presessionDtoToEntity(preSession);
+        preSessionRepository.saveAndFlush(preSessionEntity);
 
         return preSession;
     }
 
-    public boolean setPreSessionUser(UUID preSessionId, UUID userId) {
-        PreSessionEntity preSessionEntity = preSessionRepository.findByPre_session_id(preSessionId)
-                        .orElseThrow(()-> new ServiceException(500, "Smth went wrong, presession not found"));
-        preSessionEntity.setUser_id(userId);
-        try {
-            preSessionRepository.saveAndFlush(preSessionEntity);
-        }catch (Exception e) {
-            return false;
+
+//    public void setPreSessionUserAndGenerateCode(UUID preSessionId, UUID userId) {
+//
+//
+//        try {
+//            PreSessionEntity preSessionEntity = validatePreSession(preSessionId);
+//            setPreSessionUser(preSessionEntity, userId);
+//            setPreSessionCode(preSessionEntity, code);
+//
+//            preSessionRepository.saveAndFlush(preSessionEntity);
+//        } catch (Exception e) {
+//            throw new ServiceException(500, "Smth went wrong, couldn't set auth code for presession");
+//        }
+//    }
+
+    public void setPreSessionUser(UUID presessionId, UUID userId) {
+        PreSessionEntity preSession = validatePreSession(presessionId);
+        setPreSessionUser(preSession, userId);
+    }
+
+    public void validateAuthCode(String code, UUID preSessionId) {
+
+        PreSessionEntity preSessionEntity = validatePreSession(preSessionId);
+        if (preSessionEntity.getCode_expires_at().isBefore(Instant.now())) {
+            throw new ServiceException(400, "Authorization code has expired");
         }
-        return true;
+        if (!preSessionEntity.getAuth_code().equals(code)) {
+            throw new ServiceException(400, "Invalid authorization code");
+        }
+
     }
 
-    public boolean deletePreSession(UUID preSessionId) {
+    public void refreshAuthCode(String code, UUID preSessionId) {
+    }
+
+    private void setPreSessionUser(PreSessionEntity preSession, UUID userId) {
+
+        preSession.setUser_id(userId);
+        try {
+            // TODO: Log this text
+            System.out.println("PreSession user set to " + userId.toString() + " for presession "
+                    + preSession.getPre_session_id().toString());
+        } catch (Exception e) {
+            throw new ServiceException(500, "Smth went wrong, couldn't set user for presession");
+        }
+    }
+
+    private void setPreSessionCode(PreSessionEntity preSession, String code) {
+        preSession.setAuth_code(code);
+        preSession.setCode_expires_at(Instant.now().plusMillis(AUTH_CODE_EXPIRE_TIME_MILLIS));
+        try {
+            // TODO: Log this text
+            System.out.println("Authorization code: " + code + " for presession "
+                    + preSession.getPre_session_id().toString());
+        } catch (Exception e) {
+            throw new ServiceException(500, "Smth went wrong, couldn't set auth code for presession");
+        }
+    }
+
+    public void deletePreSession(UUID preSessionId) {
         // TODO: Not Implemented
-        return false;
+        try {
+            preSessionRepository.deleteById(preSessionId);
+        } catch (Exception e) {
+            throw new ServiceException(500, "Error: smth went wrong while deleting presession");
+        }
     }
 
+    private PreSessionEntity validatePreSession(UUID preSessionId) {
+        return preSessionRepository.findByPre_session_id(preSessionId)
+                .orElseThrow(() -> new ServiceException(500, "Smth went wrong, presession not found"));
+    }
+
+    private String generateAuthCode() {
+        return Helper.generateCode();
+    }
 
 
 }

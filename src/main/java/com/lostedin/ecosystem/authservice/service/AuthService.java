@@ -1,7 +1,7 @@
 package com.lostedin.ecosystem.authservice.service;
 
 import com.lostedin.ecosystem.authservice.dto.session.TokenDTO;
-import com.lostedin.ecosystem.authservice.dto.User.UserDTO;
+import com.lostedin.ecosystem.authservice.dto.user.UserDTO;
 import com.lostedin.ecosystem.authservice.entity.RefreshTokenEntity;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.model.JwtShit;
