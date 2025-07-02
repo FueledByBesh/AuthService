@@ -25,6 +25,7 @@ public class OAuthClientEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID client_id;
     private String client_secret;
+    @Enumerated(EnumType.STRING)
     private OAuthClientAccessType access_type;
     private String app_name;
     private Instant created_at;
@@ -36,7 +37,7 @@ public class OAuthClientEntity {
         this.created_at = Instant.now();
     }
 
-    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY,orphanRemoval = true,cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY,orphanRemoval = true,cascade = CascadeType.ALL)
     private List<OAuthClientURIsEntity> uris;
 
 }

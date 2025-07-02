@@ -22,11 +22,11 @@ public class TokenService {
     private final Long REFRESH_TOKEN_MILLIS;
 
     public TokenService(JWTUtil jwtUtil,
-                        @Value("${lostedin.config.token.access-token-expire-time}") int accessTokenExpireTimeMin,
-                        @Value("${lostedin.config.token.refresh-token-expire-time}") int refreshTokenExpireTimedays) {
+                        @Value("${lostedin.config.token.access-token-expire-time-minutes}") int accessTokenExpireTimeMins,
+                        @Value("${lostedin.config.token.refresh-token-expire-time-days}") int refreshTokenExpireTimeDays) {
         this.jwtUtil = jwtUtil;
-        this.ACCESS_TOKEN_MILLIS = accessTokenExpireTimeMin * 60_000L;
-        this.REFRESH_TOKEN_MILLIS = refreshTokenExpireTimedays * 24 * 60 * 60 * 1000L;
+        this.ACCESS_TOKEN_MILLIS = accessTokenExpireTimeMins * 60_000L;
+        this.REFRESH_TOKEN_MILLIS = refreshTokenExpireTimeDays * 24 * 60 * 60 * 1000L;
     }
 
     public String createAccessTokenWithClaims(String sub, Map<String, Object> claims ){

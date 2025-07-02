@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface PreSessionRepository extends JpaRepository<PreSessionEntity, UUID> {
 
-    Optional<PreSessionEntity> findByPre_session_id(UUID preSessionId);
+    Optional<PreSessionEntity> findByPreSessionId(UUID preSessionId);
 
 
 }

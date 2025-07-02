@@ -5,13 +5,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 
+@Deprecated
 @Component
 public class RSAKeyProvider {
 
-    @Value("${JWT_PRIVATE_KEY}")
+//    @Value("${JWT_PRIVATE_KEY}")
     private String privateKeyBase64;
 
-    @Value("${JWT_PUBLIC_KEY}")
+//    @Value("${JWT_PUBLIC_KEY}")
     private String publicKeyBase64;
 
     public String getPrivateKey() {

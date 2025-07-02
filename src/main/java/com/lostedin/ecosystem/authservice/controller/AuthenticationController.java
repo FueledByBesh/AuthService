@@ -57,10 +57,10 @@ public class AuthenticationController {
 
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:"+url+"/login?psid="+preSession.getPre_session_id();
+            return "redirect:"+url+"/login?psid="+preSession.getPreSessionId();
         }
 
-        return "redirect:"+url+"/user-list?psid="+preSession.getPre_session_id();
+        return "redirect:"+url+"/user-list?psid="+preSession.getPreSessionId();
     }
 
     @GetMapping("/login")

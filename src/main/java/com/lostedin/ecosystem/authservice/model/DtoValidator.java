@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 public class DtoValidator {
 
-    //TODO: Should recheck class, cause its copied from UserService
-
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
 
@@ -33,7 +31,7 @@ public class DtoValidator {
         try {
             validateOrThrow(object);
         }catch (IllegalArgumentException e){
-            throw new ServiceException(401,e.getMessage());
+            throw new ServiceException(400,e.getMessage());
         }
     }
 

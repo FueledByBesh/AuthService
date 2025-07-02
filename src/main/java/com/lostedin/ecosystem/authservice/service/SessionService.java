@@ -48,7 +48,7 @@ public class SessionService {
 
         // generating a presession id
         UUID preSessionId = UUID.randomUUID();
-        if (preSessionRepository.findByPre_session_id(preSessionId).isPresent()) {
+        if (preSessionRepository.findByPreSessionId(preSessionId).isPresent()) {
             // TODO: вывести в log что id уже существует
             System.out.println("PreSession with id " + preSessionId + " already exists, generating new one");
             return generatePreSession(clientId, redirectUri, scopes, state, responseType);
@@ -69,9 +69,9 @@ public class SessionService {
 
         // Generating a presession
         PreSessionCreateDTO preSession = PreSessionCreateDTO.builder()
-                .pre_session_id(preSessionId)
-                .client_id(client_id)
-                .redirect_uri(redirectUri)
+                .preSessionId(preSessionId)
+                .clientId(client_id)
+                .redirectUri(redirectUri)
                 .scopes(scopes)
                 .state(state)
                 .responseType(oAuthResponseType)
@@ -106,10 +106,10 @@ public class SessionService {
     public void validateAuthCode(String code, UUID preSessionId) {
 
         PreSessionEntity preSessionEntity = validatePreSession(preSessionId);
-        if (preSessionEntity.getCode_expires_at().isBefore(Instant.now())) {
+        if (preSessionEntity.getCodeExpiresAt().isBefore(Instant.now())) {
             throw new ServiceException(400, "Authorization code has expired");
         }
-        if (!preSessionEntity.getAuth_code().equals(code)) {
+        if (!preSessionEntity.getAuthCode().equals(code)) {
             throw new ServiceException(400, "Invalid authorization code");
         }
 
@@ -120,23 +120,23 @@ public class SessionService {
 
     private void setPreSessionUser(PreSessionEntity preSession, UUID userId) {
 
-        preSession.setUser_id(userId);
+        preSession.setUserId(userId);
         try {
             // TODO: Log this text
             System.out.println("PreSession user set to " + userId.toString() + " for presession "
-                    + preSession.getPre_session_id().toString());
+                    + preSession.getPreSessionId().toString());
         } catch (Exception e) {
             throw new ServiceException(500, "Smth went wrong, couldn't set user for presession");
         }
     }
 
     private void setPreSessionCode(PreSessionEntity preSession, String code) {
-        preSession.setAuth_code(code);
-        preSession.setCode_expires_at(Instant.now().plusMillis(AUTH_CODE_EXPIRE_TIME_MILLIS));
+        preSession.setAuthCode(code);
+        preSession.setCodeExpiresAt(Instant.now().plusMillis(AUTH_CODE_EXPIRE_TIME_MILLIS));
         try {
             // TODO: Log this text
             System.out.println("Authorization code: " + code + " for presession "
-                    + preSession.getPre_session_id().toString());
+                    + preSession.getPreSessionId().toString());
         } catch (Exception e) {
             throw new ServiceException(500, "Smth went wrong, couldn't set auth code for presession");
         }
@@ -152,7 +152,7 @@ public class SessionService {
     }
 
     private PreSessionEntity validatePreSession(UUID preSessionId) {
-        return preSessionRepository.findByPre_session_id(preSessionId)
+        return preSessionRepository.findByPreSessionId(preSessionId)
                 .orElseThrow(() -> new ServiceException(500, "Smth went wrong, presession not found"));
     }
 

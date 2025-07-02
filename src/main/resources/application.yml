@@ -25,7 +25,10 @@ server:
 lostedin:
   config:
     token:
+      # Time in minutes before access tokens expire (default: 30, min: 5, max: 60)
       access-token-expire-time-minutes: 30
+      # Time in days before refresh tokens expire (default: 3, min: 1, max: 7)
       refresh-token-expire-time-days: 3
     response-code:
+      # Time in minutes before response codes expire (default: 5, min: 1, max: 10)
       code-expire-time-minutes: 5

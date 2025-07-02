@@ -29,7 +29,7 @@ public class OAuthClientService {
     @Transactional
     public OAuthClientCredentialsDTO createOAuthClient(OAuthClientCreateDTO client) {
 
-        DtoValidator.validateOrThrow(client);
+        DtoValidator.validateOrThrow400Exception(client);
 
         OAuthClientEntity clientEntity = mapper.createDtoToClientEntity(client);
         clientEntity.setClient_secret(generateClientSecret());

@@ -2,6 +2,7 @@ package com.lostedin.ecosystem.authservice.dto.oauthclient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lostedin.ecosystem.authservice.enums.OAuthClientAccessType;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,8 +13,11 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OAuthClientCreateDTO {
 
+    @NotNull(message = "app_name cannot be null")
     private String app_name;
+    @NotNull(message = "you should write at least one uri")
     private Set<String> redirectURIs;
+    @NotNull(message = "access_type cannot be null")
     private OAuthClientAccessType access_type;
 
 }

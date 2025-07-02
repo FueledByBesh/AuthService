@@ -14,19 +14,19 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.Map;
 
-@Deprecated(forRemoval = true)
+//@Deprecated(forRemoval = true)
 @Component
 public class JwtShit {
 
     private final RSAKeyProvider rsaKeyProvider;
 
-    private final RSAPrivateKey privateKey;
-    private final RSAPublicKey publicKey;
+    private RSAPrivateKey privateKey;
+    private RSAPublicKey publicKey;
 
     public JwtShit(RSAKeyProvider rsaKeyProvider) {
         this.rsaKeyProvider = rsaKeyProvider;
-        this.privateKey = RSAKeyConverter.convertPrivateKey(rsaKeyProvider.getPrivateKey());
-        this.publicKey = RSAKeyConverter.convertPublicKey(rsaKeyProvider.getPublicKey());
+//        this.privateKey = RSAKeyConverter.convertPrivateKey(rsaKeyProvider.getPrivateKey());
+//        this.publicKey = RSAKeyConverter.convertPublicKey(rsaKeyProvider.getPublicKey());
     }
 
     public String generateUserToken(String idAsSub, String username, long expirationMillis) {

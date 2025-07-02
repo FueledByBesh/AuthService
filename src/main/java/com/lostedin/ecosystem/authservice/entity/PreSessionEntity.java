@@ -19,21 +19,29 @@ import java.util.UUID;
 public class PreSessionEntity {
 
     @Id
-    private UUID pre_session_id;
-    private UUID client_id;
+    @Column(name = "pre_session_id")
+    private UUID preSessionId;
+    @Column(name = "client_id")
+    private UUID clientId;
     private String state;
-    private String redirect_uri;
+    @Column(name = "redirect_uri")
+    private String redirectUri;
     private String scopes;
-    private OAuthResponseType response_type;
-    private Instant created_at;
+    @Column(name = "response_type")
+    private OAuthResponseType responseType;
+    @Column(name = "created_at")
+    private Instant createdAt;
 
-    private UUID user_id;
-    private String auth_code;
-    private Instant code_expires_at;
+    @Column(name = "user_id")
+    private UUID userId;
+    @Column(name = "auth_code")
+    private String authCode;
+    @Column(name = "code_expires_at")
+    private Instant codeExpiresAt;
 
     @PrePersist
     private void setCreatedAtDate(){
-        this.created_at = Instant.now();
+        this.createdAt = Instant.now();
     }
 
 

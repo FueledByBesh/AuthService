@@ -61,8 +61,9 @@ public class JWTUtil {
     private byte[] getKey(){
 
         //TODO: Not Implemented
-        String key = System.getenv("JWE_SHARED_KEY");
-        return Base64.getDecoder().decode(key);
+//        String key = System.getenv("JWE_SHARED_KEY");
+//        return Base64.getDecoder().decode(key);
+        return null;
     }
 
 }

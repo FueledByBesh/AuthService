@@ -12,10 +12,10 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PreSessionCreateDTO {
 
-    private UUID pre_session_id;
-    private UUID client_id;
+    private UUID preSessionId;
+    private UUID clientId;
     private String state;
-    private String redirect_uri;
+    private String redirectUri;
     private OAuthResponseType responseType;
     private String scopes;
 
