@@ -38,6 +38,11 @@ public class TokenService {
     }
 
     public String refreshAccessToken(String refreshToken){
+
+        // TODO: 03.07.2025 , Status: Not Implemented
+        //  1) Should validate refresh token (Check whether it exists or not in database)
+        //  2) Get user id from sessions, not from inside refresh token, because refresh token should be opaque
+
         try {
             JWTPayload payload = jwtUtil.validateTokenAndGetPayload(refreshToken);
             if(Objects.isNull(payload.getClaims()) || payload.getClaims().isEmpty()) {
@@ -73,7 +78,9 @@ public class TokenService {
         }
     }
 
-    public void deleteExpiredTokens(){}
+    public void deleteExpiredRefreshTokens(){
+        // TODO: Not Implemented
+    }
 
     public void deleteTokensByUserId(){}
 

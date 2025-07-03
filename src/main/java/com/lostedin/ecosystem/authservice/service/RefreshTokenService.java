@@ -20,7 +20,7 @@ public class RefreshTokenService {
 
     public void createRefreshToken(UUID userId, String token, long expirationMillis) {
         RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
-        refreshTokenEntity.setUserId(userId);
+//        refreshTokenEntity.setUserId(userId);
         refreshTokenEntity.setToken(token);
         refreshTokenEntity.setExpiresAt(Instant.now().plus(expirationMillis, ChronoUnit.MILLIS));
         try{
@@ -47,7 +47,7 @@ public class RefreshTokenService {
     }
 
     public void deleteRefreshTokenByUserId(UUID userId) {
-        refreshTokenRepository.deleteByUserId(userId);
+//        refreshTokenRepository.deleteByUserId(userId);
     }
 
     public boolean isTokenExpired(RefreshTokenEntity refreshTokenEntity) {

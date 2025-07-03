@@ -12,6 +12,10 @@ import java.util.UUID;
 @Setter
 public class RefreshTokenEntity {
 
+    // TODO: 03.07.2025 не знаю правильно ли я делаю или нет 
+    @Transient
+    private long token_expire_time_millis;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -19,16 +23,24 @@ public class RefreshTokenEntity {
     @Column(nullable = false, unique = true, columnDefinition = "TEXT")
     private String token;
 
-
-    //TODO: Not need to save user id, better to save session id
-    // (Status: Not Implemented)
-
-    @Column(nullable = false)
-    private UUID userId;
+    private boolean revoked;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(nullable = false)
     private Instant expiresAt;
+
+
+    @PrePersist
+    private void prePersist(){
+        this.createdAt = Instant.now();
+        this.revoked = false;
+        this.expiresAt = this.createdAt.plusMillis(token_expire_time_millis);
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", insertable = false, updatable = false)
+    private SessionEntity session;
+
 }
