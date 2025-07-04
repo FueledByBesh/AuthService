@@ -15,7 +15,7 @@ public class DtoValidator {
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
 
-    public static <T> void validateOrThrow(T object) {
+    public static <T> void validateOrThrow(T object) throws IllegalArgumentException{
         Set<ConstraintViolation<T>> violations = validator.validate(object);
 
         if (!violations.isEmpty()) {

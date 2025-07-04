@@ -1,12 +1,17 @@
 package com.lostedin.ecosystem.authservice.service;
 
 import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
+import com.lostedin.ecosystem.authservice.entity.RefreshTokenEntity;
+import com.lostedin.ecosystem.authservice.entity.SessionEntity;
 import com.lostedin.ecosystem.authservice.exception.InvalidTokenException;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.exception.TokenEncryptionException;
 import com.lostedin.ecosystem.authservice.exception.TokenExpiredException;
+import com.lostedin.ecosystem.authservice.model.Helper;
 import com.lostedin.ecosystem.authservice.model.JWTPayload;
 import com.lostedin.ecosystem.authservice.model.JWTUtil;
+import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
+import com.lostedin.ecosystem.authservice.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +22,20 @@ import java.util.UUID;
 @Service
 public class TokenService {
 
+    private final RefreshTokenRepository rtRepository;
+
     private final JWTUtil jwtUtil;
     private final Long ACCESS_TOKEN_MILLIS;
     private final Long REFRESH_TOKEN_MILLIS;
 
     public TokenService(JWTUtil jwtUtil,
                         @Value("${lostedin.config.token.access-token-expire-time-minutes}") int accessTokenExpireTimeMins,
-                        @Value("${lostedin.config.token.refresh-token-expire-time-days}") int refreshTokenExpireTimeDays) {
+                        @Value("${lostedin.config.token.refresh-token-expire-time-days}") int refreshTokenExpireTimeDays,
+                        RefreshTokenRepository rtRepository) {
         this.jwtUtil = jwtUtil;
         this.ACCESS_TOKEN_MILLIS = accessTokenExpireTimeMins * 60_000L;
         this.REFRESH_TOKEN_MILLIS = refreshTokenExpireTimeDays * 24 * 60 * 60 * 1000L;
+        this.rtRepository = rtRepository;
     }
 
     public String createAccessTokenWithClaims(String sub, Map<String, Object> claims ){
@@ -66,15 +75,19 @@ public class TokenService {
         //TODO: Not Implemented
     }
 
-    public void deleteRefreshTokenByUserId(UUID userId){
-        //TODO: Not Implemented
-    }
 
-    public String createRefreshToken( String sub, Map<String, Object> claims){
+    public String createRefreshToken(SessionEntity session){
         try {
-            return jwtUtil.generateTokenWithClaims(sub, claims, REFRESH_TOKEN_MILLIS);
-        }catch (TokenEncryptionException e){
-            throw new ServiceException(500, "Internal Server Error while creating Refresh Token: " + e.getMessage());
+            String token = generateOpaqueToken();
+            RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
+            refreshTokenEntity.setTokenHash(hashToken(token));
+            refreshTokenEntity.setTokenTTLMillis(REFRESH_TOKEN_MILLIS);
+            refreshTokenEntity.setSession(session);
+            rtRepository.save(refreshTokenEntity);
+            return token;
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ServiceException(500,"Internal Server Error: Server couldn't create refresh token");
         }
     }
 
@@ -90,5 +103,22 @@ public class TokenService {
 
     public void createIdToken(UserMinDataDTO user){}
 
+    private String generateOpaqueToken(){
+        try {
+            return Helper.generateRandomBase64UrlEncodedString(64);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ServiceException(500,"Internal Server Error: Server couldn't generate token");
+        }
+    }
+
+    private String hashToken(String token){
+        try {
+            return Helper.hashString(token);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new ServiceException(500,"Internal Server Error: Server couldn't hash token");
+        }
+    }
 
 }

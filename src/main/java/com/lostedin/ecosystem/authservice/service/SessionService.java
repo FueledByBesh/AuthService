@@ -13,6 +13,7 @@ import com.lostedin.ecosystem.authservice.repository.PreSessionRepository;
 import com.lostedin.ecosystem.authservice.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,16 +27,33 @@ public class SessionService {
 
 
     private final OAuthClientService clientService;
+    private final TokenService tokenService;
     private final SessionDtoEntityMapper sessionMapper;
     private final int AUTH_CODE_EXPIRE_TIME_MILLIS = 5 * 60 * 1000;
 
-    public boolean createSession(SessionCreateDTO session) {
+    @Transactional
+    public void createSession(SessionCreateDTO session) {
 
-        DtoValidator.validateOrThrow(session);
+        try {
+            DtoValidator.validateOrThrow(session);
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+            throw new ServiceException(500, "Internal Server Error: Smth Get Wrong" );
+        }
         SessionEntity sessionEntity = sessionMapper.sessionDtoToEntity(session);
+        sessionEntity = sessionRepository.save(sessionEntity);
+        tokenService.createRefreshToken(sessionEntity);
 
+        /* TODO: 05.07.2025 Not Finished
+            Ideas at this point:
+            1) Надо обдумать создать ли сессию сразу после передачи AuthCode клиенту или же
+            после валидации AuthCode. Если до валидации, то надо будет создать еще один StatusType
+            (типо NotStarted or smth else)
+            2) Думаю создание refresh токена для сессии надо вывести в отдельный метод,
+            потому что refresh токена для сессии можно генерировать и после создания сессии, то есть
+            что бы продолжить сессию
+         */
 
-        return false;
     }
 
     public boolean createPreSession(PreSessionCreateDTO session) {
@@ -157,7 +175,7 @@ public class SessionService {
     }
 
     private String generateAuthCode() {
-        return Helper.generateCode();
+        return Helper.generateRandomBase64UrlEncodedString(32);
     }
 
 

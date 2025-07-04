@@ -2,16 +2,19 @@ package com.lostedin.ecosystem.authservice.model;
 
 import com.lostedin.ecosystem.authservice.enums.OAuthClientAccessType;
 import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Set;
 
 @Component
@@ -61,10 +64,18 @@ public class Helper {
         return sb.toString();
     }
 
-    public static String generateCode() {
-        SecureRandom random = new SecureRandom();
-        byte[] code = new byte[32];
-        random.nextBytes(code);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(code);
+    public static String generateRandomBase64UrlEncodedString(int byteLength) {
+        byte[] randomBytes = new byte[byteLength];
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
+
+
+    // returns 64 symbols of a hashed input string
+    public static String hashString(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] inputHashed = md.digest(input.getBytes(StandardCharsets.UTF_8)); // 32 byte hashed string
+        return HexFormat.of().formatHex(inputHashed); // 64 symbols from 32 bytes
+    }
+
 }

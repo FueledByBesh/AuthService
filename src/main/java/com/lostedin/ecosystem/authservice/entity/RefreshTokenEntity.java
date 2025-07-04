@@ -12,23 +12,35 @@ import java.util.UUID;
 @Setter
 public class RefreshTokenEntity {
 
-    // TODO: 03.07.2025 не знаю правильно ли я делаю или нет 
+    /*
+        Решено использовать opaque токены для refresh token, потому что claims все равно будет сохранен в бд,
+        нету смысла рисковать впихая их внутрь токена.
+     */
+
+    // TODO: 03.07.2025 не знаю правильно ли я делаю или нет
     @Transient
-    private long token_expire_time_millis;
+    private long tokenTTLMillis =24 * 60 * 60 * 1000; // time to live 1 day by default
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Column(name = "token_id")
+    private UUID tokenId;
 
-    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
-    private String token;
+//    @Lob // будет хранить в бд как large object (в случае postgres как TEXT)
+//    @Column(nullable = false, unique = true)
+//    private String token;
 
-    private boolean revoked;
-
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    // token_hash нужен для быстрого поиска токена, так как text плохо индексируется
+    @Column(name = "token_hash", nullable = false,length = 64)
+    private String tokenHash;
 
     @Column(nullable = false)
+    private boolean revoked;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
 
@@ -36,7 +48,7 @@ public class RefreshTokenEntity {
     private void prePersist(){
         this.createdAt = Instant.now();
         this.revoked = false;
-        this.expiresAt = this.createdAt.plusMillis(token_expire_time_millis);
+        this.expiresAt = this.createdAt.plusMillis(tokenTTLMillis);
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
