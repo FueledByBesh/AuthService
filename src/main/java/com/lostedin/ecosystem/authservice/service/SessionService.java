@@ -56,20 +56,15 @@ public class SessionService {
 
     }
 
-    public boolean createPreSession(PreSessionCreateDTO session) {
 
-
-        return false;
-    }
-
-    public PreSessionCreateDTO generatePreSession(String clientId, String redirectUri, String scopes, String state, String responseType) {
+    public PreSessionCreateDTO createPreSession(String clientId, String redirectUri, String scopes, String state, String responseType) {
 
         // generating a presession id
         UUID preSessionId = UUID.randomUUID();
         if (preSessionRepository.findByPreSessionId(preSessionId).isPresent()) {
             // TODO: вывести в log что id уже существует
             System.out.println("PreSession with id " + preSessionId + " already exists, generating new one");
-            return generatePreSession(clientId, redirectUri, scopes, state, responseType);
+            return createPreSession(clientId, redirectUri, scopes, state, responseType);
         }
 
         // checking whether a client exists

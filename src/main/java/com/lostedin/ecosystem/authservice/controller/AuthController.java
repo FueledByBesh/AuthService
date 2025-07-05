@@ -1,10 +1,12 @@
 package com.lostedin.ecosystem.authservice.controller;
 
+import com.lostedin.ecosystem.authservice.dto.oauthflow.AuthorizeDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserLoginDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserRegisterDTO;
 import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
+import com.lostedin.ecosystem.authservice.service.AuthService;
 import com.lostedin.ecosystem.authservice.service.BrowserService;
 import com.lostedin.ecosystem.authservice.service.SessionService;
 import com.lostedin.ecosystem.authservice.service.UserService;
@@ -23,44 +25,44 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/oauth/v1/auth")
-public class AuthenticationController {
+public class AuthController {
 
 
-    /*TODO (идея для будущего апдейта):
-     * внедрить state(рандомный идентификатор для сессии)
-     * сервис будет отправлять его внутри параметров и использовать этот state во всех
-     * последующих запросах внутри сервера
-     * State хранить в Redis с expire_time (максимум 30 минут)
-     * Если параметр state будет или пустым или expired или нету в Redis запрос будет отклонен
-     * (Если добавить state то можно удалить service-name из параметров url)
-     * (но все равно state будет передаваться, но хотя бы у него есть роль - безопасность)
-     * Status: In Process
-     * Вместо state внедрено PreSessions который будет хранятся в Redis (потом, если вспомню кнч)
+    /* TODO: Should Implement (Status: Not Implemented Yet)
+        1) Вернуть клиенту scope-granted (scopes которые приняты)
+        2) PKCE для публичных клиентов (Optional for confidential clients)
+        3) Implement Refresh token rotation
      */
 
-    private final String url="/oauth/v1/auth";
+    private final String url = "/oauth/v1/auth";
+    private final AuthService authService;
     private final SessionService sessionService;
     private final BrowserService browserService;
     private final UserService userService;
 
     @GetMapping("/authorize")
-    protected String authenticate(@RequestParam(name = "response_type") String responseType,
-                                  @RequestParam(name = "client_id") String clientId,
-                                  @RequestParam(name = "state",required = false) String state,
-                                  @RequestParam(name = "redirect_uri") String redirectUri,
-                                  @RequestParam(name = "scope") String scope,
-                                  Model model,
-                                  HttpServletRequest request) {
+    protected String authorize(@RequestParam(name = "response_type") String responseType,
+                               @RequestParam(name = "client_id") String clientId,
+                               @RequestParam(name = "state", required = false) String state,
+                               @RequestParam(name = "redirect_uri") String redirectUri,
+                               @RequestParam(name = "scope") String scope,
+                               Model model,
+                               HttpServletRequest request) {
+
+        AuthorizeDTO authDto = new AuthorizeDTO(); // TODO: should get dto using mapper
+
+        authService.startAuthorizationFlow(authDto);
+
 
         PreSessionCreateDTO preSession = sessionService
-                .generatePreSession(clientId, redirectUri, scope, state, responseType);
+                .createPreSession(clientId, redirectUri, scope, state, responseType); // TODO: should implement this in authService
 
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:"+url+"/login?psid="+preSession.getPreSessionId();
+            return "redirect:" + url + "/login?psid=" + preSession.getPreSessionId();
         }
 
-        return "redirect:"+url+"/user-list?psid="+preSession.getPreSessionId();
+        return "redirect:" + url + "/user-list?psid=" + preSession.getPreSessionId();
     }
 
     @GetMapping("/login")
@@ -75,17 +77,17 @@ public class AuthenticationController {
 
     @PostMapping("/log-in")
     protected String login(@RequestParam(name = "psid") UUID preSessionId,
-                         @RequestBody UserLoginDTO user,Model model){
+                           @RequestBody UserLoginDTO user, Model model) {
 
         Optional<UUID> userId = userService.validateUser(user.getEmail(), user.getPassword());
 
-        if(userId.isEmpty()){
-            return "redirect:"+url+"/login?psid=" + preSessionId + "&wrong-credentials=true";
+        if (userId.isEmpty()) {
+            return "redirect:" + url + "/login?psid=" + preSessionId + "&wrong-credentials=true";
         }
 
-        sessionService.setPreSessionUser(preSessionId,userId.get());
+        sessionService.setPreSessionUser(preSessionId, userId.get());
 
-        return "redirect:"+url+"/user-permission?psid=" + preSessionId;
+        return "redirect:" + url + "/user-permission?psid=" + preSessionId;
     }
 
     // Logs out from the current browser session
@@ -101,17 +103,17 @@ public class AuthenticationController {
 
     @GetMapping("user-list")
     protected String userList(@RequestParam(name = "psid") UUID preSessionId,
-                              Model model,HttpServletRequest request) {
+                              Model model, HttpServletRequest request) {
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:"+url+"/login?psid=" + preSessionId;
+            return "redirect:" + url + "/login?psid=" + preSessionId;
         }
 
         List<UserMinDataDTO> users = browserService.getBrowserUsers(bid);
-        if(users.isEmpty()) {
+        if (users.isEmpty()) {
             model.addAttribute("message", "No users found");
-            model.addAttribute("isLoggedIn",false);
-        }else {
+            model.addAttribute("isLoggedIn", false);
+        } else {
             model.addAttribute("isLoggedIn", true);
             model.addAttribute("users", users);
         }
@@ -121,7 +123,7 @@ public class AuthenticationController {
 
     @GetMapping("/user-permission")
     protected String userAccess(@RequestParam(name = "psid") UUID preSessionId,
-                                Model model){
+                                Model model) {
 
         String message = "Will you give access to your account?";
         model.addAttribute("psid", preSessionId);
@@ -130,14 +132,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/access-given")
-    protected String accessGiven(){
+    protected String accessGiven() {
         // TODO: return access, refresh token and openID with user minimal data
         //  and redirect to client redirect_uri with state parameter
         return null;
     }
 
     @PostMapping("/access-denied")
-    protected String accessDenied(){
+    protected String accessDenied() {
         // TODO: return access denied to client
         //  and redirect to client redirect_uri with state parameter
         return null;
@@ -148,33 +150,33 @@ public class AuthenticationController {
     protected String registerForm(@RequestParam(name = "psid") UUID preSessionId,
                                   Model model) {
         model.addAttribute("psid", preSessionId);
-        model.addAttribute("registerUrl", url+"/register?psid="+preSessionId);
+        model.addAttribute("registerUrl", url + "/register?psid=" + preSessionId);
         return "register-form";
     }
 
     @PostMapping("/register")
     protected String register(@RequestParam(name = "psid") UUID preSessionId,
-                              @RequestBody UserRegisterDTO user, Model model){
+                              @RequestBody UserRegisterDTO user, Model model) {
 
         UUID userId = userService.createUser(user);
 
-        if(userId == null)
+        if (userId == null)
             throw new ServiceException(500, "Smth went wrong with creating user");
 
-        sessionService.setPreSessionUser(preSessionId,userId);
+        sessionService.setPreSessionUser(preSessionId, userId);
 
-        return "redirect:"+url+"/user-permission?psid=" + preSessionId;
+        return "redirect:" + url + "/user-permission?psid=" + preSessionId;
     }
 
     @ResponseBody
     @GetMapping("/get-cookies")
-    protected List<String> getSID(HttpServletRequest request){
+    protected List<String> getSID(HttpServletRequest request) {
         return browserService.getCookies(request);
     }
 
     @ResponseBody
     @GetMapping("/health")
-    protected String health(){
+    protected String health() {
         // TODO: Not Implemented
         return "Health";
     }

@@ -2,15 +2,14 @@ package com.lostedin.ecosystem.authservice.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum OAuthClientAccessType {
+public enum OAuthClientType {
 
     PUBLIC("public"),
-    TRUSTED("trusted"),
     CONFIDENTIAL("confidential");
 
     private final String value;
 
-    OAuthClientAccessType(String value){
+    OAuthClientType(String value){
         this.value = value;
     }
 

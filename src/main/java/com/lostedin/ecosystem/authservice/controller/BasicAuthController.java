@@ -6,7 +6,7 @@ import com.lostedin.ecosystem.authservice.dto.session.TokenDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserDTO;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.model.RSAKeyProvider;
-import com.lostedin.ecosystem.authservice.service.AuthService;
+import com.lostedin.ecosystem.authservice.service.BasicAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.FilterChainProxy;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth/v1")
 public class BasicAuthController {
 
-    private final AuthService authService;
+    private final BasicAuthService basicAuthService;
     private final FilterChainProxy filterChainProxy;
     private final RSAKeyProvider rsaKeyProvider;
 
@@ -46,26 +46,26 @@ public class BasicAuthController {
 
     @PostMapping("/login")
     protected ResponseEntity<TokenDTO> login(@RequestBody UserDTO user) {
-        TokenDTO token = authService.login(user);
+        TokenDTO token = basicAuthService.login(user);
         return ResponseEntity.ok(token);
     }
 
     // удаляет все refresh токены пользователя
     @PostMapping("/logout")
     protected ResponseEntity<ApiMessageDTO> logout(@RequestBody UserDTO userDTO) {
-        authService.logout(userDTO);
+        basicAuthService.logout(userDTO);
         return ResponseEntity.ok(ApiMessageDTO.builder().message("UserImitation logged out successfully").build());
     }
 
     @PostMapping("/register")
     protected ResponseEntity<TokenDTO> register(@RequestBody UserDTO user) {
-        TokenDTO token = authService.register(user);
+        TokenDTO token = basicAuthService.register(user);
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/refresh-token")
     protected ResponseEntity<TokenDTO> refresh(@RequestBody TokenDTO token) {
-        TokenDTO newToken = authService.refreshAccessToken(token.getRefreshToken());
+        TokenDTO newToken = basicAuthService.refreshAccessToken(token.getRefreshToken());
         return ResponseEntity.ok(newToken);
     }
 

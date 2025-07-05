@@ -21,7 +21,7 @@ public class PreSessionEntity {
     @Id
     @Column(name = "pre_session_id")
     private UUID preSessionId;
-    @Column(name = "client_id")
+    @Column(name = "client_id", nullable = false, updatable = false)
     private UUID clientId;
     private String state;
     @Column(name = "redirect_uri")

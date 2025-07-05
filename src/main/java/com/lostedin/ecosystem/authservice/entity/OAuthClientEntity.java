@@ -1,6 +1,6 @@
 package com.lostedin.ecosystem.authservice.entity;
 
-import com.lostedin.ecosystem.authservice.enums.OAuthClientAccessType;
+import com.lostedin.ecosystem.authservice.enums.OAuthClientType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,22 +19,29 @@ public class OAuthClientEntity {
         1) наверное стоит вывести это на другой микросервис (например DevService)
         2) связать с существующей lostedin.account
         3) профили для приложения
+        4) внердрить client trust level для resource owners (в зависимости от безопасного хранения данных)
      */
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID client_id;
-    private String client_secret;
+    @Column(name = "client_id")
+    private UUID clientId;
+    @Column(name = "client_secret", nullable = false)
+    private String clientSecret;
     @Enumerated(EnumType.STRING)
-    private OAuthClientAccessType access_type;
-    private String app_name;
-    private Instant created_at;
+    @Column(name = "client_type",nullable = false)
+    private OAuthClientType clientType;
+    @Column(name = "app_name")
+    private String appName;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 //    private String about_app;
 //    private String app_icon;
 
     @PrePersist
-    private void setCreated_at() {
-        this.created_at = Instant.now();
+    private void prePersist() {
+        this.createdAt = Instant.now();
     }
 
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY,orphanRemoval = true,cascade = CascadeType.ALL)

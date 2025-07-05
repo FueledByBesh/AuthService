@@ -1,8 +1,7 @@
 package com.lostedin.ecosystem.authservice.model;
 
-import com.lostedin.ecosystem.authservice.enums.OAuthClientAccessType;
+import com.lostedin.ecosystem.authservice.enums.OAuthClientType;
 import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
-import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,8 +33,8 @@ public class Helper {
         return Set.of(scopes.split(" "));
     }
 
-    public static OAuthClientAccessType getOauthAccessType(String value) {
-        for (OAuthClientAccessType type : OAuthClientAccessType.values()) {
+    public static OAuthClientType getOauthClientType(String value) {
+        for (OAuthClientType type : OAuthClientType.values()) {
             if (type.getValue().equalsIgnoreCase(value)) {
                 return type;
             }
