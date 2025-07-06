@@ -1,28 +1,25 @@
 package com.lostedin.ecosystem.authservice.dto.session;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
 import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class PreSessionCreateDTO {
-
-    @NotNull(message = "client_id cannot be null")
+public class ReadOnlyPreSessionDTO {
     private UUID clientId;
     private String state;
-    @NotNull(message = "redirect_uri cannot be null")
     private String redirectURI;
-    @NotNull(message = "response_type cannot be null")
-    private OAuthResponseType responseType;
     private String scopes;
+    private OAuthResponseType responseType;
+    private Instant createdAt;
+    private UUID userId;
+    private String authCode;
+    private Instant codeExpiresAt;
     private String codeChallenge;
-    private CodeChallengeMethodType codeChallengeMethod;
-
+    private CodeChallengeMethodType codeChallengeMethodType;
 }

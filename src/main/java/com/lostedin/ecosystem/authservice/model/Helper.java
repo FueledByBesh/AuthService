@@ -1,7 +1,8 @@
 package com.lostedin.ecosystem.authservice.model;
 
 import com.lostedin.ecosystem.authservice.enums.OAuthClientType;
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,22 +34,31 @@ public class Helper {
         return Set.of(scopes.split(" "));
     }
 
-    public static OAuthClientType getOauthClientType(String value) {
+    public static OAuthClientType getOauthClientType(String value) throws IllegalArgumentException{
         for (OAuthClientType type : OAuthClientType.values()) {
             if (type.getValue().equalsIgnoreCase(value)) {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown access type: " + value);
+        throw new IllegalArgumentException("Unknown client type: " + value);
     }
 
-    public static OAuthResponseType getOauthResponseType(String value) {
+    public static OAuthResponseType getOauthResponseType(String value) throws IllegalArgumentException {
         for (OAuthResponseType type : OAuthResponseType.values()) {
             if (type.getValue().equalsIgnoreCase(value)) {
                 return type;
             }
         }
         throw new IllegalArgumentException("Unknown response type: " + value);
+    }
+
+    public static CodeChallengeMethodType getCodeChallengeMethodType(String value) throws IllegalArgumentException {
+        for (CodeChallengeMethodType type : CodeChallengeMethodType.values()) {
+            if (type.getValue().equalsIgnoreCase(value)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown code challenge method type: " + value);
     }
 
 

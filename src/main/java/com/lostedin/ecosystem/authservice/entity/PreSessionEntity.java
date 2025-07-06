@@ -4,8 +4,10 @@ package com.lostedin.ecosystem.authservice.entity;
 // (Кратковременный память до создания полноценной сессий)
 // PS: нужен что бы каждый раз не передавать данные в параметрах url
 
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,17 +21,21 @@ import java.util.UUID;
 public class PreSessionEntity {
 
     @Id
-    @Column(name = "pre_session_id")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "pre_session_id",unique = true)
+    @Setter(AccessLevel.NONE)
     private UUID preSessionId;
     @Column(name = "client_id", nullable = false, updatable = false)
     private UUID clientId;
     private String state;
-    @Column(name = "redirect_uri")
-    private String redirectUri;
+    @Column(name = "redirect_uri",nullable = false)
+    private String redirectURI;
+    @Column(name = "scopes",nullable = false)
     private String scopes;
-    @Column(name = "response_type")
+    @Column(name = "response_type",nullable = false)
     private OAuthResponseType responseType;
-    @Column(name = "created_at")
+    @Column(name = "created_at",nullable = false)
+    @Setter(AccessLevel.NONE)
     private Instant createdAt;
 
     @Column(name = "user_id")
@@ -38,6 +44,11 @@ public class PreSessionEntity {
     private String authCode;
     @Column(name = "code_expires_at")
     private Instant codeExpiresAt;
+
+    @Column(name = "code_challenge",updatable = false)
+    private String codeChallenge;
+    @Column(name = "code_challenge_method",updatable = false)
+    private CodeChallengeMethodType codeChallengeMethod;
 
     @PrePersist
     private void setCreatedAtDate(){

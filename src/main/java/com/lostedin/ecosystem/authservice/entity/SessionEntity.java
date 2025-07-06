@@ -1,6 +1,5 @@
 package com.lostedin.ecosystem.authservice.entity;
 
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.enums.StatusType;
 import jakarta.persistence.*;
 import lombok.Getter;

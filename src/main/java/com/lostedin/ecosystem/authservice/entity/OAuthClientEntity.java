@@ -27,7 +27,7 @@ public class OAuthClientEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "client_id")
     private UUID clientId;
-    @Column(name = "client_secret", nullable = false)
+    @Column(name = "client_secret")
     private String clientSecret;
     @Enumerated(EnumType.STRING)
     @Column(name = "client_type",nullable = false)

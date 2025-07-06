@@ -5,26 +5,30 @@ import com.lostedin.ecosystem.authservice.dto.user.UserLoginDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserRegisterDTO;
 import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
-import com.lostedin.ecosystem.authservice.service.AuthService;
-import com.lostedin.ecosystem.authservice.service.BrowserService;
-import com.lostedin.ecosystem.authservice.service.SessionService;
-import com.lostedin.ecosystem.authservice.service.UserService;
+import com.lostedin.ecosystem.authservice.model.Helper;
+import com.lostedin.ecosystem.authservice.service.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/oauth/v1/auth")
+@RequestMapping("/oauth2/v1/auth")
 public class AuthController {
 
 
@@ -34,8 +38,8 @@ public class AuthController {
         3) Implement Refresh token rotation
      */
 
-    private final String url = "/oauth/v1/auth";
-    private final AuthService authService;
+    private final String url = "/oauth2/v1/auth";
+    private final OAuthFlowService oAuthFlowService;
     private final SessionService sessionService;
     private final BrowserService browserService;
     private final UserService userService;
@@ -44,25 +48,35 @@ public class AuthController {
     protected String authorize(@RequestParam(name = "response_type") String responseType,
                                @RequestParam(name = "client_id") String clientId,
                                @RequestParam(name = "state", required = false) String state,
-                               @RequestParam(name = "redirect_uri") String redirectUri,
+                               @RequestParam(name = "redirect_uri") String redirectURI,
                                @RequestParam(name = "scope") String scope,
-                               Model model,
+                               @RequestParam(name = "code_challenge", required = false) String codeChallenge,
+                               @RequestParam(name = "code_challenge_method", required = false) String codeChallengeMethod,
                                HttpServletRequest request) {
 
-        AuthorizeDTO authDto = new AuthorizeDTO(); // TODO: should get dto using mapper
 
-        authService.startAuthorizationFlow(authDto);
+        AuthorizeDTO authDto = createAuthorizeDTO(
+                clientId,
+                responseType,
+                redirectURI,
+                scope, state,
+                codeChallenge,
+                codeChallengeMethod
+        );
 
-
-        PreSessionCreateDTO preSession = sessionService
-                .createPreSession(clientId, redirectUri, scope, state, responseType); // TODO: should implement this in authService
+        UUID preSessionId = oAuthFlowService.startAuthorizationFlow(authDto);
 
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:" + url + "/login?psid=" + preSession.getPreSessionId();
+            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
+                    .queryParam("psid", preSessionId)
+                    .build();
         }
 
-        return "redirect:" + url + "/user-list?psid=" + preSession.getPreSessionId();
+
+        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-list")
+                .queryParam("psid", preSessionId)
+                .build();
     }
 
     @GetMapping("/login")
@@ -82,31 +96,28 @@ public class AuthController {
         Optional<UUID> userId = userService.validateUser(user.getEmail(), user.getPassword());
 
         if (userId.isEmpty()) {
-            return "redirect:" + url + "/login?psid=" + preSessionId + "&wrong-credentials=true";
+            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
+                    .queryParam("psid", preSessionId)
+                    .queryParam("wrong-credentials", true)
+                    .build();
         }
 
         sessionService.setPreSessionUser(preSessionId, userId.get());
 
-        return "redirect:" + url + "/user-permission?psid=" + preSessionId;
+
+        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-permission")
+                .queryParam("psid", preSessionId)
+                .build();
     }
-
-    // Logs out from the current browser session
-//    @GetMapping("/logout")
-//    protected String logout(Model model, HttpServletRequest request, HttpServletResponse response) {
-//        UUID bid = getBrowserId(request);
-//        if (bid == null) {
-//            return "redirect:/login?service=logout";
-//        }
-//        response.addCookie(new Cookie("SID", null));
-//    }
-
 
     @GetMapping("user-list")
     protected String userList(@RequestParam(name = "psid") UUID preSessionId,
                               Model model, HttpServletRequest request) {
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:" + url + "/login?psid=" + preSessionId;
+            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
+                    .queryParam("psid", preSessionId)
+                    .build();
         }
 
         List<UserMinDataDTO> users = browserService.getBrowserUsers(bid);
@@ -131,18 +142,16 @@ public class AuthController {
         return "user-permission";
     }
 
-    @PostMapping("/access-given")
-    protected String accessGiven() {
-        // TODO: return access, refresh token and openID with user minimal data
-        //  and redirect to client redirect_uri with state parameter
-        return null;
+    @GetMapping("/access-given")
+    protected String accessGiven(@RequestParam(name = "psid") UUID preSessionId) {
+        String clientCallbackUri = oAuthFlowService.handleAuthorizationCallback(preSessionId);
+        return "redirect:" + clientCallbackUri;
     }
 
-    @PostMapping("/access-denied")
-    protected String accessDenied() {
-        // TODO: return access denied to client
-        //  and redirect to client redirect_uri with state parameter
-        return null;
+    @GetMapping("/access-denied")
+    protected String accessDenied(@RequestParam(name = "psid") UUID preSessionId) {
+        String clientCallbackUri = oAuthFlowService.handleAuthorizationCallbackAccessDenied(preSessionId);
+        return "redirect:" + clientCallbackUri;
     }
 
 
@@ -150,23 +159,40 @@ public class AuthController {
     protected String registerForm(@RequestParam(name = "psid") UUID preSessionId,
                                   Model model) {
         model.addAttribute("psid", preSessionId);
-        model.addAttribute("registerUrl", url + "/register?psid=" + preSessionId);
+        model.addAttribute("registerUrl",
+                UriComponentsBuilder.fromUriString(url + "/register")
+                        .queryParam("psid", preSessionId).build().toUriString());
         return "register-form";
     }
 
+
     @PostMapping("/register")
     protected String register(@RequestParam(name = "psid") UUID preSessionId,
-                              @RequestBody UserRegisterDTO user, Model model) {
+                              @RequestBody UserRegisterDTO user) {
+
+        /* TODO: 07.07.2025 Status: Not Implemented
+            1) Check if the email has been used before or not
+            2) Confirm Email by sending code or smth else
+            2) Save user into browser cookies
+         */
 
         UUID userId = userService.createUser(user);
 
-        if (userId == null)
+        if (userId == null) {
+            log.error("Couldn't create user");
             throw new ServiceException(500, "Smth went wrong with creating user");
+        }
 
         sessionService.setPreSessionUser(preSessionId, userId);
 
-        return "redirect:" + url + "/user-permission?psid=" + preSessionId;
+        // TODO: 07.07.2025 Should Save user into browser cookies
+
+        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-permission")
+                .queryParam("psid", preSessionId)
+                .build();
     }
+
+    // write confirm email
 
     @ResponseBody
     @GetMapping("/get-cookies")
@@ -191,6 +217,39 @@ public class AuthController {
         System.out.println(uuid);
         response.addCookie(cookie);
 
+    }
+
+    private AuthorizeDTO createAuthorizeDTO(String clientId,
+                                            String responseType, String redirectURI,
+                                            String scope, String state,
+                                            String codeChallenge, String codeChallengeMethod) {
+
+        OAuthResponseType oAuthResponseType;
+        CodeChallengeMethodType codeChallengeMethodType;
+
+        try {
+            oAuthResponseType = Helper.getOauthResponseType(responseType);
+        } catch (IllegalArgumentException e) {
+            throw new ServiceException(400, "Bad Request: Unknown response type");
+        }
+        try {
+            if (codeChallenge != null)
+                codeChallengeMethodType = Helper.getCodeChallengeMethodType(codeChallengeMethod);
+            else
+                codeChallengeMethodType = null;
+        } catch (IllegalArgumentException e) {
+            throw new ServiceException(400, "Bad Request: Unknown code challenge method");
+        }
+
+        return AuthorizeDTO.builder()
+                .clientId(clientId)
+                .responseType(oAuthResponseType)
+                .redirectURI(redirectURI)
+                .scope(scope)
+                .state(state)
+                .codeChallenge(codeChallenge)
+                .codeChallengeMethod(codeChallengeMethodType)
+                .build();
     }
 
 

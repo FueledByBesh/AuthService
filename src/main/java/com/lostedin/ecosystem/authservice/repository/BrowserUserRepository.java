@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface BrowserUserRepository extends JpaRepository<BrowserUserEntity, UUID> {
 
-    @Query("SELECT bs.user_id FROM BrowserUserEntity bs WHERE bs.browser_id = :browserId")
+    @Query("SELECT bs.userId FROM BrowserUserEntity bs WHERE bs.browserId = :browserId")
     List<UUID> getUsersIdByBrowserId(UUID browserId);
 
 

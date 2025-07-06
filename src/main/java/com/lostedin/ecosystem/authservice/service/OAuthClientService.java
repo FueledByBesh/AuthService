@@ -4,12 +4,14 @@ import com.lostedin.ecosystem.authservice.dto.oauthclient.OAuthClientCreateDTO;
 import com.lostedin.ecosystem.authservice.dto.oauthclient.OAuthClientCredentialsDTO;
 import com.lostedin.ecosystem.authservice.entity.OAuthClientEntity;
 import com.lostedin.ecosystem.authservice.entity.OAuthClientURIsEntity;
+import com.lostedin.ecosystem.authservice.enums.OAuthClientType;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
 import com.lostedin.ecosystem.authservice.mapper.OAuthClientDtoEntityMapper;
 import com.lostedin.ecosystem.authservice.model.DtoValidator;
 import com.lostedin.ecosystem.authservice.model.Helper;
 import com.lostedin.ecosystem.authservice.repository.OAuthClientRepository;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +34,7 @@ public class OAuthClientService {
         DtoValidator.validateOrThrow400Exception(client);
 
         OAuthClientEntity clientEntity = mapper.createDtoToClientEntity(client);
-        clientEntity.setClient_secret(generateClientSecret());
+        clientEntity.setClientSecret(generateClientSecret());
 
         List<OAuthClientURIsEntity> uriList = new ArrayList<>();
         client.getRedirectURIs().forEach(redirectUri -> {
@@ -54,10 +56,12 @@ public class OAuthClientService {
         clientRepository.deleteById(clientId);
     }
 
+    @Nullable
     private OAuthClientEntity validateClient(UUID clientId){
         return clientRepository.findById(clientId).orElse(null);
     }
 
+    @Nullable
     public UUID validateClient(String clientId){
         //TODO: Partially Implemented
         // 1) should return client id in UUID format
@@ -86,13 +90,28 @@ public class OAuthClientService {
             throw new ServiceException(400, "Invalid client id: " + clientId);
         }
 
-        return client.getClient_secret().equals(clientSecret);
+        return client.getClientSecret().equals(clientSecret);
     }
 
 
 //    public OAuthClientEntity getOAuthClientIdString(String clientId){}
 
 
+    public boolean isPublicClient(UUID clientId){
+        OAuthClientEntity client = validateClient(clientId);
+        if(client != null) {
+            return client.getClientType() == OAuthClientType.PUBLIC;
+        }
+        throw new ServiceException(400, "Invalid client id: " + clientId);
+    }
+
+    public boolean isConfidentialClient(UUID clientId){
+        OAuthClientEntity client = validateClient(clientId);
+        if(client != null) {
+            return client.getClientType() == OAuthClientType.CONFIDENTIAL;
+        }
+        throw new ServiceException(400, "Invalid client id: " + clientId);
+    }
 
     private String generateClientSecret(){
         String secret = Helper.generateSecret();

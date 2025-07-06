@@ -50,6 +50,7 @@ public class OAuthController {
             "&service=lso" +
             "&o2v=2" +
             "&flowName=GeneralOAuthFlow";
+
     String choose1 = "https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?" +
             "response_type=code" +
             "&redirect_uri=https%3A%2F%2Flifeat.io%2Foauth%2Fgoogle%2Fcallback" +
@@ -91,4 +92,17 @@ public class OAuthController {
             "&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hANmXwpBATRmyxL8Ix4hFtHSZClipDC61DA0i6DYp8bKS69cUIL7AXI9ZIx1MdysyGyjiWEg_BdC5ynnIbM2JZm8WOYam29a2xmnWzgqzM3H-nlUh8pMjlTriLcggiZOU9C62KONI1smF_2N4MLqze8YR77LwxLRorWdytHmOJZnDL96SDLqkFiaPJuJ9h_0Mp3Vq0wS-4JFwANvo8YN0f82onjQJRyRyNWvFVpUZTo0XeL1aBOw6WMileDIiLuGcLKTbFhWyzOWqeLgNWH6ODNtf8w-9V184fxP2By98lxlYlbGGE0Fhr61A3Sc_yJZPiHoNl5LUtaFARSVZjKKBiG0SlEpddMz2nuDic0Dy6Ow0e2cDGqs1SimUrcgwOe-y14pAn5XX2--va0CKVspgZgOMVF3ogV2F4jd-NPRHlZqEntEnPRyBW2QRs9muRT-zCiXRMyqhJjR7pkj1T0nMxmAAU8FTg%26flowName%3DGeneralOAuthFlow%26as%3DS-888355547%253A1749408773021579%26client_id%3D460057837969-erbua701u2du3p881ikg72jaekuavj2o.apps.googleusercontent.com%23&flowName=GeneralOAuthFlow&hl=ru&o2v=2&prompt=select_account+consent&redirect_uri=https%3A%2F%2Flifeat.io%2Foauth%2Fgoogle%2Fcallback&response_type=code&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+profile&service=lso&state=%7B%22shouldGoBackToDesktop%22%3Afalse%7D";
 
 
+    String sololearngoogle = "https://accounts.google.com/o/oauth2/auth/oauthchooseaccount" +
+            "?redirect_uri=storagerelay%3A%2F%2Fhttps%2Fwww.sololearn.com%3Fid%3Dauth105118" +
+            "&response_type=permission%20id_token" +
+            "&scope=profile%20email&openid.realm" +
+            "&include_granted_scopes=true" +
+            "&client_id=870337102131-58k7sh5viu298qiu1e23ts8sqjclpm9h.apps.googleusercontent.com" +
+            "&ss_domain=https%3A%2F%2Fwww.sololearn.com" +
+            "&fetch_basic_profile=false" +
+            "&gsiwebsdk=2" +
+            "&prompt=select_account" +
+            "&service=lso" +
+            "&o2v=1" +
+            "&flowName=GeneralOAuthFlow";
 }

@@ -16,9 +16,13 @@ public class BrowserUserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    private UUID browser_id;
-    private UUID user_id;
-    private Instant first_logged_at;
-    private Instant last_logged_at;
+    @Column(name = "browser_id")
+    private UUID browserId;
+    @Column(name = "user_id")
+    private UUID userId;
+    @Column(name = "first_logged_at")
+    private Instant firstLoggedAt;
+    @Column(name = "last_logged_at")
+    private Instant lastLoggedAt;
 
 }

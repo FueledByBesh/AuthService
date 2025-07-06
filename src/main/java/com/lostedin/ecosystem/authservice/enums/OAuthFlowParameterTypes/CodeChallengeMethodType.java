@@ -1,16 +1,15 @@
-package com.lostedin.ecosystem.authservice.enums;
+package com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum OAuthResponseType {
+public enum CodeChallengeMethodType {
 
-    CODE("code"),
-    TOKEN("token"),
-    ID_TOKEN("id_token");
+    S256("S256"),
+    PLAIN("plain");
 
     private final String value;
 
-    OAuthResponseType(String value) {
+    CodeChallengeMethodType(String value) {
         this.value = value;
     }
 

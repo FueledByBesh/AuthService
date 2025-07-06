@@ -2,15 +2,9 @@ package com.lostedin.ecosystem.authservice.dto.session;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lostedin.ecosystem.authservice.entity.OAuthClientEntity;
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.time.Instant;
 import java.util.UUID;

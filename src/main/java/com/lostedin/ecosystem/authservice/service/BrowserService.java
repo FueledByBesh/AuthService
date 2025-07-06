@@ -7,6 +7,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BrowserService {
 
     private final BrowserUserRepository browserUserRepository;
@@ -34,7 +38,8 @@ public class BrowserService {
                 try {
                     return UUID.fromString(bid);
                 }catch (IllegalArgumentException e){
-                    throw new ServiceException(500, "Smth went wrong with bid" + e.getMessage() );
+                    log.error("Couldn't parse bid", e);
+                    throw new ServiceException(500, "Smth went wrong with bid");
                 }
             }
         }

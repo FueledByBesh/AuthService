@@ -1,10 +1,12 @@
 package com.lostedin.ecosystem.authservice.exception;
 
 import com.lostedin.ecosystem.authservice.dto.server.ApiMessageDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -24,8 +26,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiMessageDTO> handleGenericException(Exception ex) {
-        return ResponseEntity.status(500).body(ApiMessageDTO.builder().status(500).message("An unexpected error occurred: " + ex.getMessage()).build());
+        log.error("Unexpected error occurred", ex);
+        return ResponseEntity.status(500).body(ApiMessageDTO.builder().status(500).message("Internal Server Error: Smth went wrong").build());
     }
+
+    @ExceptionHandler(UnknownException.class)
+    public ResponseEntity<ApiMessageDTO> handleUnknownException(UnknownException ex) {
+        log.error("Unexpected error occurred", ex);
+        return ResponseEntity.status(500).body(ApiMessageDTO.builder().status(500).message("Internal Server Error: Smth went wrong").build());
+    }
+
+
 
     @ExceptionHandler(WebClientExeption.class)
     public ResponseEntity<ApiMessageDTO> handleWebClientException(WebClientExeption ex) {

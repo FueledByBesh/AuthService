@@ -1,17 +1,21 @@
 package com.lostedin.ecosystem.authservice.service;
 
 import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
+import com.lostedin.ecosystem.authservice.dto.session.ReadOnlyPreSessionDTO;
 import com.lostedin.ecosystem.authservice.dto.session.SessionCreateDTO;
 import com.lostedin.ecosystem.authservice.entity.PreSessionEntity;
 import com.lostedin.ecosystem.authservice.entity.SessionEntity;
-import com.lostedin.ecosystem.authservice.enums.OAuthResponseType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
+import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
+import com.lostedin.ecosystem.authservice.exception.UnknownException;
 import com.lostedin.ecosystem.authservice.mapper.SessionDtoEntityMapper;
 import com.lostedin.ecosystem.authservice.model.DtoValidator;
 import com.lostedin.ecosystem.authservice.model.Helper;
 import com.lostedin.ecosystem.authservice.repository.PreSessionRepository;
 import com.lostedin.ecosystem.authservice.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SessionService {
 
     private final SessionRepository sessionRepository;
@@ -29,16 +34,16 @@ public class SessionService {
     private final OAuthClientService clientService;
     private final TokenService tokenService;
     private final SessionDtoEntityMapper sessionMapper;
-    private final int AUTH_CODE_EXPIRE_TIME_MILLIS = 5 * 60 * 1000;
+    private final int AUTH_CODE_EXPIRE_TIME_MILLIS = 5 * 60 * 1000; // 5 minutes
 
     @Transactional
     public void createSession(SessionCreateDTO session) {
 
         try {
             DtoValidator.validateOrThrow(session);
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
-            throw new ServiceException(500, "Internal Server Error: Smth Get Wrong" );
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid session DTO", e);
+            throw new ServiceException(500, "Internal Server Error: Smth Get Wrong");
         }
         SessionEntity sessionEntity = sessionMapper.sessionDtoToEntity(session);
         sessionEntity = sessionRepository.save(sessionEntity);
@@ -56,44 +61,37 @@ public class SessionService {
 
     }
 
-
-    public PreSessionCreateDTO createPreSession(String clientId, String redirectUri, String scopes, String state, String responseType) {
-
-        // generating a presession id
-        UUID preSessionId = UUID.randomUUID();
-        if (preSessionRepository.findByPreSessionId(preSessionId).isPresent()) {
-            // TODO: вывести в log что id уже существует
-            System.out.println("PreSession with id " + preSessionId + " already exists, generating new one");
-            return createPreSession(clientId, redirectUri, scopes, state, responseType);
-        }
+    public UUID createPreSession(UUID clientId,
+                                 String redirectUri,
+                                 String scopes, String state,
+                                 OAuthResponseType responseType,
+                                 String codeChallenge,
+                                 CodeChallengeMethodType codeChallengeMethod) {
 
         // checking whether a client exists
-        UUID client_id = clientService.validateClient(clientId);
-        if (client_id == null) {
+        if (clientId == null) {
             throw new ServiceException(400, "Invalid client id");
-        }
-
-        OAuthResponseType oAuthResponseType;
-        try {
-            oAuthResponseType = Helper.getOauthResponseType(responseType);
-        } catch (IllegalArgumentException e) {
-            throw new ServiceException(400, "Error: " + e.getMessage());
         }
 
         // Generating a presession
         PreSessionCreateDTO preSession = PreSessionCreateDTO.builder()
-                .preSessionId(preSessionId)
-                .clientId(client_id)
-                .redirectUri(redirectUri)
+                .clientId(clientId)
+                .redirectURI(redirectUri)
                 .scopes(scopes)
                 .state(state)
-                .responseType(oAuthResponseType)
+                .responseType(responseType)
+                .codeChallenge(codeChallenge)
+                .codeChallengeMethod(codeChallengeMethod)
                 .build();
 
-        PreSessionEntity preSessionEntity = sessionMapper.presessionDtoToEntity(preSession);
-        preSessionRepository.saveAndFlush(preSessionEntity);
 
-        return preSession;
+        PreSessionEntity preSessionEntity = sessionMapper.presessionDtoToEntity(preSession);
+        try {
+            return preSessionRepository.saveAndFlush(preSessionEntity).getPreSessionId();
+        } catch (Exception e) {
+            log.error("Error while saving PreSession in db", e);
+            throw new ServiceException(500, "Smth went wrong, couldn't create presession");
+        }
     }
 
 
@@ -116,6 +114,15 @@ public class SessionService {
         setPreSessionUser(preSession, userId);
     }
 
+    // Returns Authorization Code
+    public String setPreSessionCode(UUID presessionId) {
+        PreSessionEntity preSession = validatePreSession(presessionId);
+        String code = generateAuthCode();
+        preSession = setPreSessionCode(preSession, code);
+        log.info("Authorization code generated for presession {} and code expires at {}", preSession.getPreSessionId(), preSession.getCodeExpiresAt());
+        return preSession.getAuthCode();
+    }
+
     public void validateAuthCode(String code, UUID preSessionId) {
 
         PreSessionEntity preSessionEntity = validatePreSession(preSessionId);
@@ -128,29 +135,34 @@ public class SessionService {
 
     }
 
+    public ReadOnlyPreSessionDTO getPreSessionDTO(UUID preSessionId) {
+        PreSessionEntity preSessionEntity = validatePreSession(preSessionId);
+        return sessionMapper.preSessionEntityToReadOnlyPreSessionDto(preSessionEntity);
+    }
+
     public void refreshAuthCode(String code, UUID preSessionId) {
     }
 
-    private void setPreSessionUser(PreSessionEntity preSession, UUID userId) {
+    private PreSessionEntity setPreSessionUser(PreSessionEntity preSession, UUID userId) {
 
-        preSession.setUserId(userId);
         try {
-            // TODO: Log this text
-            System.out.println("PreSession user set to " + userId.toString() + " for presession "
-                    + preSession.getPreSessionId().toString());
+            preSession.setUserId(userId);
+            log.info("PreSession user set to {} for presession {}", userId, preSession.getPreSessionId());
+            return preSessionRepository.saveAndFlush(preSession);
         } catch (Exception e) {
+            log.error("Error while setting PreSession user for preSession: {}",preSession.getPreSessionId() ,e);
             throw new ServiceException(500, "Smth went wrong, couldn't set user for presession");
         }
     }
 
-    private void setPreSessionCode(PreSessionEntity preSession, String code) {
-        preSession.setAuthCode(code);
-        preSession.setCodeExpiresAt(Instant.now().plusMillis(AUTH_CODE_EXPIRE_TIME_MILLIS));
+    private PreSessionEntity setPreSessionCode(PreSessionEntity preSession, String code) {
         try {
-            // TODO: Log this text
-            System.out.println("Authorization code: " + code + " for presession "
-                    + preSession.getPreSessionId().toString());
+            preSession.setAuthCode(code);
+            preSession.setCodeExpiresAt(Instant.now().plusMillis(AUTH_CODE_EXPIRE_TIME_MILLIS));
+            log.info("Authorization code set for presession {}", preSession.getPreSessionId());
+            return preSessionRepository.saveAndFlush(preSession);
         } catch (Exception e) {
+            log.error("Error while setting Authorization code for PreSession: {}",preSession.getPreSessionId(), e);
             throw new ServiceException(500, "Smth went wrong, couldn't set auth code for presession");
         }
     }
@@ -164,9 +176,9 @@ public class SessionService {
         }
     }
 
-    private PreSessionEntity validatePreSession(UUID preSessionId) {
+    private PreSessionEntity validatePreSession(UUID preSessionId) throws UnknownException {
         return preSessionRepository.findByPreSessionId(preSessionId)
-                .orElseThrow(() -> new ServiceException(500, "Smth went wrong, presession not found"));
+                .orElseThrow(() -> new UnknownException("Smth went wrong, presession not found"));
     }
 
     private String generateAuthCode() {
