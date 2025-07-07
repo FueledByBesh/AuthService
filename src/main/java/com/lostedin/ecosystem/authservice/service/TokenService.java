@@ -12,6 +12,7 @@ import com.lostedin.ecosystem.authservice.model.JWTPayload;
 import com.lostedin.ecosystem.authservice.model.JWTUtil;
 import com.lostedin.ecosystem.authservice.repository.RefreshTokenRepository;
 import com.lostedin.ecosystem.authservice.repository.SessionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class TokenService {
 
@@ -83,10 +85,10 @@ public class TokenService {
             refreshTokenEntity.setTokenHash(hashToken(token));
             refreshTokenEntity.setTokenTTLMillis(REFRESH_TOKEN_MILLIS);
             refreshTokenEntity.setSession(session);
-            rtRepository.save(refreshTokenEntity);
+            rtRepository.saveAndFlush(refreshTokenEntity);
             return token;
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Couldn't create refresh token", e);
             throw new ServiceException(500,"Internal Server Error: Server couldn't create refresh token");
         }
     }
@@ -107,7 +109,7 @@ public class TokenService {
         try {
             return Helper.generateRandomBase64UrlEncodedString(64);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Couldn't generate token", e);
             throw new ServiceException(500,"Internal Server Error: Server couldn't generate token");
         }
     }
@@ -116,7 +118,7 @@ public class TokenService {
         try {
             return Helper.hashString(token);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Couldn't hash token", e);
             throw new ServiceException(500,"Internal Server Error: Server couldn't hash token");
         }
     }

@@ -33,6 +33,7 @@ public class PreSessionEntity {
     @Column(name = "scopes",nullable = false)
     private String scopes;
     @Column(name = "response_type",nullable = false)
+    @Enumerated(EnumType.STRING)
     private OAuthResponseType responseType;
     @Column(name = "created_at",nullable = false)
     @Setter(AccessLevel.NONE)
@@ -48,6 +49,7 @@ public class PreSessionEntity {
     @Column(name = "code_challenge",updatable = false)
     private String codeChallenge;
     @Column(name = "code_challenge_method",updatable = false)
+    @Enumerated(EnumType.STRING)
     private CodeChallengeMethodType codeChallengeMethod;
 
     @PrePersist

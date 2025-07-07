@@ -19,31 +19,32 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void createRefreshToken(UUID userId, String token, long expirationMillis) {
-        RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
-//        refreshTokenEntity.setUserId(userId);
-        refreshTokenEntity.setToken(token);
-        refreshTokenEntity.setExpiresAt(Instant.now().plus(expirationMillis, ChronoUnit.MILLIS));
-        try{
-            refreshTokenRepository.save(refreshTokenEntity);
-        }catch (Exception e){
-            throw new ServiceException(500, "Error saving refresh token");
-        }
+//        RefreshTokenEntity refreshTokenEntity = new RefreshTokenEntity();
+////        refreshTokenEntity.setUserId(userId);
+//        refreshTokenEntity.setExpiresAt(Instant.now().plus(expirationMillis, ChronoUnit.MILLIS));
+//        try{
+//            refreshTokenRepository.save(refreshTokenEntity);
+//        }catch (Exception e){
+//            throw new ServiceException(500, "Error saving refresh token");
+//        }
     }
 
     public Optional<RefreshTokenEntity> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+//        return refreshTokenRepository.findByToken(token);
+        return Optional.empty();
     }
 
     public Optional<RefreshTokenEntity> findById(UUID id) {
-        return refreshTokenRepository.findById(id);
+//        return refreshTokenRepository.findById(id);
+        return Optional.empty();
     }
 
     public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
+//        refreshTokenRepository.deleteByToken(token);
     }
 
     public void deleteRefreshToken(UUID tokenId) {
-        refreshTokenRepository.deleteById(tokenId);
+//        refreshTokenRepository.deleteById(tokenId);
     }
 
     public void deleteRefreshTokenByUserId(UUID userId) {

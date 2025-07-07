@@ -14,23 +14,23 @@
 
 <body>
 <div class="Login">
-    <h2 class="Login-h2" th:text="'Login to '+${service}"></h2>
+    <h2 class="Login-h2">Login to smth</h2>
     <div class="Login-container">
-        <form action="">
+        <form th:action="@{/oauth2/v1/auth/login-test(psid=${psid})}" th:object="${user}" method="post">
             <div class="form-step">
                 <div class="input-group">
                     <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="Enter your email">
+                    <input type="email" th:field="*{email}" id="login-email" placeholder="Enter your email">
                 </div>
                 <div class="input-group">
                     <label for="login-password">Password</label>
                     <div class="password-input-container">
-                        <input type="password" id="login-password" placeholder="Enter your password">
+                        <input type="password" th:field="*{password}" id="login-password" placeholder="Enter your password">
                         <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePassword('login-password')"></i>
                     </div>
                 </div>
                 <button type="submit" class="Login-button">Sign In</button>
-                <p class="Login-p">Don't have an account? <a href="register-form.html">Register</a></p>
+<!--                <p class="Login-p">Don't have an account? <a href="register-form.html">Register</a></p>-->
             </div>
         </form>
     </div>

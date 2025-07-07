@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -22,17 +22,14 @@ logging:
   level:
     root: INFO
     com.lostedin.ecosystem.authservice: DEBUG
-    org:
-      springframework: INFO
-      hibernate:
-        SQL: DEBUG
-        type.descriptor.sql: TRACE
-
-
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
   pattern:
-    console: %d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n
+    console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
   file:
     name: logs/dev.log
+
 server:
   address: accounts.lostedin.com
   port: 8080

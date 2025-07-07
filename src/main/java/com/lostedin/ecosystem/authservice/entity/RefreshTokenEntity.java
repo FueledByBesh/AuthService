@@ -17,7 +17,6 @@ public class RefreshTokenEntity {
         нету смысла рисковать впихая их внутрь токена.
      */
 
-    // TODO: 03.07.2025 не знаю правильно ли я делаю или нет
     @Transient
     private long tokenTTLMillis =24 * 60 * 60 * 1000; // time to live 1 day by default
 
@@ -30,7 +29,7 @@ public class RefreshTokenEntity {
 //    @Column(nullable = false, unique = true)
 //    private String token;
 
-    // token_hash нужен для быстрого поиска токена, так как text плохо индексируется
+    // token_hash нужен для быстрого поиска токена и для безопасного хранения
     @Column(name = "token_hash", nullable = false,length = 64)
     private String tokenHash;
 

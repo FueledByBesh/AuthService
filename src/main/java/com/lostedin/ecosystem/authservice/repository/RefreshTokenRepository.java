@@ -15,10 +15,6 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity, Long> {
-    Optional<RefreshTokenEntity> findByToken(String token);
-    Optional<RefreshTokenEntity> findById(UUID id);
-    void deleteByToken(String token);
-    void deleteById(UUID tokenId);
 
     @Modifying
     @Query("DELETE FROM RefreshTokenEntity t WHERE t.expiresAt < :now")

@@ -13,7 +13,6 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.web.bind.annotation.*;
 
 
-//TODO: контроллер должен быть @Controller что бы выдавать html страницы
 @RestController
 @Deprecated
 @RequiredArgsConstructor
@@ -80,6 +79,4 @@ public class BasicAuthController {
         return ResponseEntity.ok(rsaKeyProvider.getPublicKey());
     }
 
-
-    //TODO: Rewrite all this shit
 }
