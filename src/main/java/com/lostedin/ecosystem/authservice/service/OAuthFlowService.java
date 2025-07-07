@@ -19,8 +19,6 @@ import java.util.UUID;
 @Slf4j
 public class OAuthFlowService {
 
-    // TODO: All logic in AuthController should be written here
-
     private final OAuthClientService clientService;
     private final SessionService sessionService;
 
@@ -33,7 +31,7 @@ public class OAuthFlowService {
             throw new ServiceException(400, "Invalid client id");
         }
 
-        // TODO: Check which type of client is this
+        // Check which type of client this is
         if (clientService.isPublicClient(clientId)) {
             if (authorizeDTO.getCodeChallenge() == null || authorizeDTO.getCodeChallengeMethod() == null) {
                 throw new ServiceException(400, "code_challenge and code_challenge_method are required for public clients");
@@ -60,7 +58,7 @@ public class OAuthFlowService {
     }
 
     // Returns URI
-    public String handleAuthorizationCallback(UUID preSessionId) {
+    public String handleAuthorizationCallbackAccessSucceed(UUID preSessionId) {
 
         ReadOnlyPreSessionDTO preSession = sessionService.getPreSessionDTO(preSessionId);
 
@@ -86,14 +84,6 @@ public class OAuthFlowService {
                 .queryParam("error_description", "The resource owner denied the request.")
                 .queryParam("state", preSession.getState())
                 .build().toString();
-    }
-
-
-    public void authenticate() {
-        // TODO: Not Implemented
-    }
-
-    private void validateParameters(AuthorizeDTO authorizeDTO) {
     }
 
 }

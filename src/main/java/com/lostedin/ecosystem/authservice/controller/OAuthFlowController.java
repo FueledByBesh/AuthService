@@ -4,7 +4,6 @@ import com.lostedin.ecosystem.authservice.dto.oauthflow.AuthorizeDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserLoginDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserMinDataDTO;
 import com.lostedin.ecosystem.authservice.dto.user.UserRegisterDTO;
-import com.lostedin.ecosystem.authservice.dto.session.PreSessionCreateDTO;
 import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.CodeChallengeMethodType;
 import com.lostedin.ecosystem.authservice.enums.OAuthFlowParameterTypes.OAuthResponseType;
 import com.lostedin.ecosystem.authservice.exception.ServiceException;
@@ -15,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,23 +26,28 @@ import java.util.UUID;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/oauth2/v1/auth")
-public class AuthController {
+//@RequestMapping("/oauth2/v1/auth")
+@RequestMapping("/auth/oauth2")
+public class OAuthFlowController {
 
 
     /* TODO: Should Implement (Status: Not Implemented Yet)
         1) Вернуть клиенту scope-granted (scopes которые приняты)
         2) PKCE для публичных клиентов (Optional for confidential clients)
         3) Implement Refresh token rotation
+        4) Реализовать WebAuthn для аутентификации без пароля
      */
 
-    private final String url = "/oauth2/v1/auth";
+    private final String oAut2hurl = "/auth/oauth2";
+    private final String authFlowUrl = "/auth/auth-flow";
+
     private final OAuthFlowService oAuthFlowService;
+    private final AuthService authService;
     private final SessionService sessionService;
     private final BrowserService browserService;
     private final UserService userService;
 
-    @GetMapping("/authorize")
+    @GetMapping("/v1/authorize")
     protected String authorize(@RequestParam(name = "response_type") String responseType,
                                @RequestParam(name = "client_id") String clientId,
                                @RequestParam(name = "state", required = false) String state,
@@ -53,7 +56,6 @@ public class AuthController {
                                @RequestParam(name = "code_challenge", required = false) String codeChallenge,
                                @RequestParam(name = "code_challenge_method", required = false) String codeChallengeMethod,
                                HttpServletRequest request) {
-
 
         AuthorizeDTO authDto = createAuthorizeDTO(
                 clientId,
@@ -68,83 +70,42 @@ public class AuthController {
 
         UUID bid = browserService.getBrowserId(request);
         if (bid == null) {
-            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
+            return "redirect:" + UriComponentsBuilder.fromUriString(authFlowUrl + "/v1/login")
                     .queryParam("psid", preSessionId)
                     .build();
         }
 
 
-        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-list")
+        return "redirect:" + UriComponentsBuilder.fromUriString(authFlowUrl + "/user-list")
                 .queryParam("psid", preSessionId)
                 .build();
     }
 
-    @GetMapping("/login")
-    protected String login(@RequestParam(name = "psid") UUID preSessionId,
-                           @RequestParam(name = "wrong-credentials", required = false, defaultValue = "false")
-                           boolean wrongCredentials,
-                           Model model, HttpServletRequest request) {
-        model.addAttribute("psid", preSessionId);
-        model.addAttribute("wrongCredentials", wrongCredentials);
-        return "login-form";
-    }
 
     @PostMapping("/log-in")
     protected String login(@RequestParam(name = "psid") UUID preSessionId,
-                           @RequestBody UserLoginDTO user, Model model) {
+                           @ModelAttribute UserLoginDTO user, Model model) {
 
-        Optional<UUID> userId = userService.validateUser(user.getEmail(), user.getPassword());
-
-        if (userId.isEmpty()) {
-            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
+        if(authService.authenticateUser(user,preSessionId)){
+            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-permission")
                     .queryParam("psid", preSessionId)
-                    .queryParam("wrong-credentials", true)
                     .build();
         }
 
-        sessionService.setPreSessionUser(preSessionId, userId.get());
-
-
-        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/user-permission")
+        return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
                 .queryParam("psid", preSessionId)
+                .queryParam("wrong-credentials", true)
                 .build();
+
     }
 
-    @GetMapping("user-list")
-    protected String userList(@RequestParam(name = "psid") UUID preSessionId,
-                              Model model, HttpServletRequest request) {
-        UUID bid = browserService.getBrowserId(request);
-        if (bid == null) {
-            return "redirect:" + UriComponentsBuilder.fromUriString(url + "/login")
-                    .queryParam("psid", preSessionId)
-                    .build();
-        }
 
-        List<UserMinDataDTO> users = browserService.getBrowserUsers(bid);
-        if (users.isEmpty()) {
-            model.addAttribute("message", "No users found");
-            model.addAttribute("isLoggedIn", false);
-        } else {
-            model.addAttribute("isLoggedIn", true);
-            model.addAttribute("users", users);
-        }
-        model.addAttribute("psid", preSessionId);
-        return "user-list";
-    }
 
-    @GetMapping("/user-permission")
-    protected String userAccess(@RequestParam(name = "psid") UUID preSessionId,
-                                Model model) {
 
-        String message = "Will you give access to your account?";
-        model.addAttribute("psid", preSessionId);
-        model.addAttribute("message", message);
-        return "user-permission";
-    }
 
     @GetMapping("/access-given")
     protected String accessGiven(@RequestParam(name = "psid") UUID preSessionId) {
-        String clientCallbackUri = oAuthFlowService.handleAuthorizationCallback(preSessionId);
+        String clientCallbackUri = oAuthFlowService.handleAuthorizationCallbackAccessSucceed(preSessionId);
         return "redirect:" + clientCallbackUri;
     }
 
